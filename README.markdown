@@ -4,60 +4,60 @@ How to use
 Add to the end of Capfile  
  **require 'capistrano/ext/capobvious'**
 
- some task need 7z
- Ubuntu: sudo apt-get install p7zip-full
+some task need 7z
+Ubuntu: sudo apt-get install p7zip-full
 
 
- Cap recipies
- ======
+Cap recipies
+======
 
- **backup:db**  
- if you want to backup your production postgres database
- it will create 7z archive at your tmp/backup project folder & shared/backup on server (NOTE: it need p7zip installed on server)
+**backup:db**  
+if you want to backup your production postgres database
+it will create 7z archive at your tmp/backup project folder & shared/backup on server (NOTE: it need p7zip installed on server)
 
-  **backup:sys**  
-  backup your system folder on server to 7z archive at tmp/backup & shared/backup on server (NOTE: need p7zip)
+**backup:sys**  
+backup your system folder on server to 7z archive at tmp/backup & shared/backup on server (NOTE: need p7zip)
 
-  **backup:clean**  
-  delete all files in server shared/backup folder
-
-
-  **assets:precompile**  
-  precompiles assets on developer's machine & sends it to server
-  NOTE:
-  if in config/deploy.rb will be setted :assets to true, task will run automatically by deploy
+**backup:clean**  
+delete all files in server shared/backup folder
 
 
-  **db:create**  
-  will create a Postgresql database on server and user with password that stored in database.yml
-
-  **db:seed**  
-  run rake db:seed with right RAILS_ENV
-
-  **db:pg_import**  
-  import remote server postgresql database to your development postgresql database IT WILL DELETE YOUR DEV DATABASE (NOTE: need installed p7zip)
+**assets:precompile**  
+precompiles assets on developer's machine & sends it to server
+NOTE:
+if in config/deploy.rb will be setted :assets to true, task will run automatically by deploy
 
 
-  r**ake TASK=db:seed**  
-  runs custom rake task
+**db:create**  
+will create a Postgresql database on server and user with password that stored in database.yml
+
+**db:seed**  
+run rake db:seed with right RAILS_ENV
+
+**db:pg_import**  
+import remote server postgresql database to your development postgresql database IT WILL DELETE YOUR DEV DATABASE (NOTE: need installed p7zip)
 
 
-
-  **nginx:restart**  
-  **nginx:reload**  
-  **nginx:start**  
-  **nginx:stop**  
+r**ake TASK=db:seed**  
+runs custom rake task
 
 
 
-  **bundle:install**
+**nginx:restart**  
+**nginx:reload**  
+**nginx:start**  
+**nginx:stop**  
 
 
-  **log:tail**  
-  catch errors with tail -f log
+
+**bundle:install**
+
+
+**log:tail**  
+catch errors with tail -f log
 
 
 
-  **unicorn:start**
-  **unicorn:stop**
-  **unicorn:restart**
+**unicorn:start**
+**unicorn:stop**
+**unicorn:restart**
