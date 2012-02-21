@@ -23,7 +23,7 @@ if in config/deploy.rb will be setted :assets to true, task will run automatical
 
 
 db:create
-will create a Postgresql database and user with password that stored in database.yml
+will create a Postgresql database on server and user with password that stored in database.yml
 
 db:seed
 run rake db:seed with right RAILS_ENV
