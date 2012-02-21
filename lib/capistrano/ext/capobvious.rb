@@ -87,17 +87,16 @@ namespace :db do
   end
 end
 
-#==== PRIKHA-START ====
-desc "Run custom task usage: cap run_rake_task TASK=patch:project_category"
-task :run_rake_task do
+# PRIKHA-TASK
+desc "Run custom task usage: cap rake TASK=patch:project_category"
+task :rake do
   if ENV.has_key?('TASK')
   p "running rake task: #{ENV['TASK']}"
     run "cd #{current_path} && bundle exec rake RAILS_ENV=#{rails_env} #{ENV['TASK']}"
   else
-    puts 'Please specify correct task: cap run_rake_task TASK= some_task'
+    puts 'Please specify correct task: cap rake TASK= some_task'
   end
 end
-#==== PRIKHA-END ====
 
 namespace :backup do
   desc "Backup a database"
@@ -139,14 +138,10 @@ end
 namespace :assets do
   desc "Assets precompile"
   task :precompile do
-    if exists?(:assets) && fetch(:assets) == true
-      system("bundle exec rake assets:precompile && cd public && tar czf assets.tar.gz assets/")
-      upload("public/assets.tar.gz","#{current_path}/public/assets.tar.gz")
-      system("rm public/assets.tar.gz && rm -rf tmp/assets && mv public/assets tmp/assets")
-      run("cd #{current_path}/public && rm -rf assets/ && tar xzf assets.tar.gz && rm assets.tar.gz")
-    else
-      puts "assets is disabled in config/deploy.rb to enable add line set :assets, true"
-    end
+    system("bundle exec rake assets:precompile && cd public && tar czf assets.tar.gz assets/")
+    upload("public/assets.tar.gz","#{current_path}/public/assets.tar.gz")
+    system("rm public/assets.tar.gz && rm -rf tmp/assets && mv public/assets tmp/assets")
+    run("cd #{current_path}/public && rm -rf assets/ && tar xzf assets.tar.gz && rm assets.tar.gz")
   end
 end
 
