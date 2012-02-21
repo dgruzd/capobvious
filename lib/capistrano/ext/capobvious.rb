@@ -27,7 +27,8 @@ set :db_file_name, "#{database}-#{timestamp}.sql"
 set :db_archive_ext, "7z"
 
 
-after "deploy:symlink", "auto:run"
+#after "deploy:symlink", "auto:run"
+before "deploy:restart", "auto:run"
 after "deploy:setup", "db:create", "nginx:conf"
 namespace :auto do
   task :run do
