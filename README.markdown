@@ -58,6 +58,6 @@ catch errors with tail -f log
 
 
 
-**unicorn:start**
-**unicorn:stop**
-**unicorn:restart**
+**unicorn:start**  
+**unicorn:stop**  
+**unicorn:restart**  
