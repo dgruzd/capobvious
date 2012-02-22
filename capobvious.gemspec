@@ -1,6 +1,6 @@
 # -*- encoding: utf-8 -*-
 $:.push File.expand_path("../lib", __FILE__)
-VERSION = "0.0.3"
+VERSION = "0.0.4"
 
 Gem::Specification.new do |s|
   s.name        = "capobvious"
