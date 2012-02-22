@@ -15,15 +15,32 @@ unless exists?(:dbconf)
   set :dbconf, "database.yml"
 end
 
+if `uname -a`.include?("Darwin")
+run_local_psql = "psql -h localhost -U postgres"
+else
+run_local_psql = "#{sudo} -u postgres psql"
+end
+
 config = YAML::load(File.open("config/#{dbconf}"))
 adapter = config[rails_env]["adapter"]
 database = config[rails_env]["database"]
 db_username = config[rails_env]["username"]
 db_password = config[rails_env]["password"]
 
+
+local_rails_env = 'development'
+config = YAML::load(File.open("config/database.yml"))
+local_adapter = config[local_rails_env]["adapter"]
+local_database = config[local_rails_env]["database"]
+local_db_username = config[local_rails_env]["username"]
+local_db_password = config[local_rails_env]["password"]
+
+
+
 set :local_folder_path, "tmp/backup"
 set :timestamp, Time.new.to_i.to_s
 set :db_file_name, "#{database}-#{timestamp}.sql"
+set :sys_file_name, "#{application}-system-#{timestamp}.7z"
 set :db_archive_ext, "7z"
 
 
@@ -77,14 +94,25 @@ namespace :db do
     file_name = "#{db_file_name}.#{db_archive_ext}"
     file_path = "#{local_folder_path}/#{file_name}"
     system "cd #{local_folder_path} && 7z x #{file_name}" 
-    system "echo \"drop database #{database}\" | sudo -u postgres psql"
-    system "echo \"create database #{database} owner #{db_username};\" | sudo -u postgres psql"
-    system "sudo -u postgres psql #{database} < #{local_folder_path}/#{db_file_name}"
-    system "rm -v #{local_folder_path}/#{db_file_name}"
+    system "echo \"drop database #{local_database}\" | #{run_local_psql}"
+    system "echo \"create database #{local_database} owner #{local_db_username};\" | #{run_local_psql}"
+    system "#{run_local_psql} #{local_database} < #{local_folder_path}/#{db_file_name}"
+    system "rm #{local_folder_path}/#{db_file_name}"
   end
   task :pg_import do
     backup.db
     db.import
+  end
+end
+
+namespace :import do
+  task :sys do
+    backup.sys
+    system "rm -rfv public/system/"
+    system "7z x #{local_folder_path}/#{sys_file_name} -opublic"
+  end
+  task :db do
+    db.pg_import
   end
 end
 
@@ -119,10 +147,9 @@ namespace :backup do
   end
   desc "Backup public/system folder"
   task :sys do
-    file_name = "#{application}-system-#{timestamp}.7z"
-    file_path = "#{shared_path}/backup/#{file_name}"
+    file_path = "#{shared_path}/backup/#{sys_file_name}"
     run "7z a #{file_path} #{shared_path}/system"
-    download(file_path, "#{local_folder_path}/#{file_name}")
+    download(file_path, "#{local_folder_path}/#{sys_file_name}")
   end
   desc "Clean backup folder"
   task :clean do
