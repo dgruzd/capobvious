@@ -46,7 +46,9 @@ set :db_archive_ext, "7z"
 
 #after "deploy:symlink", "auto:run"
 before "deploy:restart", "auto:run"
-after "deploy:setup", "db:create", "nginx:conf"
+after "deploy:setup", "db:create", "nginx:conf", "install:p7zip"
+
+
 namespace :auto do
   task :run do
     if exists?(:assets) && fetch(:assets) == true
@@ -139,7 +141,8 @@ namespace :backup do
     require 'yaml'
     run "mkdir -p #{shared_path}/backup"
     if adapter == "postgresql"
-      run "pg_dump -U #{db_username} #{database} > #{dump_file_path}"
+      
+      run "export PGPASSWORD=\"#{db_password}\" && pg_dump -U #{db_username} #{database} > #{dump_file_path}"
       run "cd #{shared_path} && 7z a #{output_file} #{dump_file_path} && rm #{dump_file_path}"
     else
       puts "Cannot backup, adapter #{adapter} is not implemented for backup yet"
@@ -261,6 +264,9 @@ namespace :install do
   desc "Install apt-nyaa"
   task :aptnyaa do
     run "#{sudo} apt-get --assume-yes install wget > /dev/null 2>&1 && cd /usr/bin/ && #{sudo} wget -Nq https://raw.github.com/nyaa/UbuntuScript/master/apt-nyaa && #{sudo} chmod +x apt-nyaa"
+  end
+  task :p7zip do
+    run "#{sudo} apt-get --assume-yes install p7zip-full"
   end
 end
 
