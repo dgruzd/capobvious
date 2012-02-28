@@ -60,7 +60,7 @@ namespace :auto do
     end
     bundle.install
     if exists?(:auto_migrate) && fetch(:auto_migrate) == true
-      deploy.migrate
+      db.migrate
     end
   end
 end
@@ -91,6 +91,9 @@ namespace :db do
   end
   task :reset do
     run "cd #{current_path} && bundle exec rake RAILS_ENV=#{rails_env} db:reset"
+  end
+  task :migrate do
+    run "cd #{current_path} && bundle exec rake RAILS_ENV=#{rails_env} db:migrate"
   end
   task :import do
     file_name = "#{db_file_name}.#{db_archive_ext}"
