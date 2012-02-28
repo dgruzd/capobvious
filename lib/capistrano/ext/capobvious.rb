@@ -46,7 +46,7 @@ set :db_archive_ext, "7z"
 
 #after "deploy:symlink", "auto:run"
 before "deploy:restart", "auto:run"
-after "deploy:setup", "db:create", "nginx:conf", "install:p7zip"
+#after "deploy:setup", "db:create", "nginx:conf", "install:p7zip"
 
 
 namespace :auto do
@@ -62,6 +62,11 @@ namespace :auto do
     if exists?(:auto_migrate) && fetch(:auto_migrate) == true
       db.migrate
     end
+  end
+  task :prepare do
+    db.create
+    nginx.conf
+    install.p7zip
   end
 end
 namespace :create do
