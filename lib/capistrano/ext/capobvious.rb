@@ -88,8 +88,12 @@ end
 
 namespace :db do
   task :create do
+    if adapter == "postgresql"
     run "echo \"create user #{db_username} with password '#{db_password}';\" | #{sudo} -u postgres psql"
     run "echo \"create database #{database} owner #{db_username};\" | #{sudo} -u postgres psql"
+    else
+      puts "Cannot create, adapter #{adapter} is not implemented yet"
+    end
   end
   task :seed do
     run "cd #{current_path} && bundle exec rake RAILS_ENV=#{rails_env} db:seed"
