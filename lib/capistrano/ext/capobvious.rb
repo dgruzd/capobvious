@@ -8,12 +8,14 @@ set :rvm_type, :user
 default_run_options[:pty] = true
 ssh_options[:forward_agent] = true
 
-unless exists?(:rails_env)
-  set :rails_env, "production"
-end
-unless exists?(:dbconf)
-  set :dbconf, "database.yml"
-end
+set :rails_env, "production" unless exists?(:rails_env)
+set :branch, "master" unless exists?(:branch)
+set :dbconf, "database.yml" unless exists?(:dbconf)
+set :deploy_to, "/home/#{user}/www/#{application}" unless exists?(:deploy_to)
+set :deploy_via, :remote_cache unless exists?(:deploy_via)
+set :keep_releases, 5 unless exists?(:keep_releases)
+set :use_sudo, false unless exists?(:use_sudo)
+set :scm, :git unless exists?(:scm)
 
 if `uname -a`.include?("Darwin")
 run_local_psql = "psql -h localhost -U postgres"

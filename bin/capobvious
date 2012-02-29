@@ -1,2 +1,87 @@
 #!/usr/bin/env ruby
-puts "hello"
+
+
+require 'optparse'
+require 'fileutils'
+
+OptionParser.new do |opts|
+  opts.banner = "Usage: #{File.basename($0)} [path]"
+
+  opts.on("-h", "--help", "Displays this help info") do
+    puts opts
+    exit 0
+  end
+
+  begin
+    opts.parse!(ARGV)
+  rescue OptionParser::ParseError => e
+    warn e.message
+    puts opts
+    exit 1
+  end
+end
+
+if ARGV.empty?
+  abort "Please specify the directory to capify, e.g. `#{File.basename($0)} .'"
+elsif !File.exists?(ARGV.first)
+  abort "`#{ARGV.first}' does not exist."
+elsif !File.directory?(ARGV.first)
+  abort "`#{ARGV.first}' is not a directory."
+elsif ARGV.length > 1
+  abort "Too many arguments; please specify only the directory to capify."
+end
+
+def unindent(string)
+  indentation = string[/\A\s*/]
+  string.strip.gsub(/^#{indentation}/, "")
+end
+
+files = {
+  "Capfile" => <<FILE,
+load 'deploy'
+Dir['vendor/gems/*/recipes/*.rb','vendor/plugins/*/recipes/*.rb'].each { |plugin| load(plugin) }
+load 'config/deploy' # remove this line to skip loading any of the default tasks
+require 'capistrano/ext/capobvious'
+FILE
+
+  "config/deploy.rb" => <<FILE
+# -*- encoding : utf-8 -*-
+set :rvm_ruby_string, '1.9.3'
+set :application, "appname"
+set :user, "USER_NAME_HERE"
+set :serv, "IP_ADDRESS_HERE"
+
+set :repository,  "REPOSITORY_HERE"
+set :server_name, "example.com"
+set :server_redirect, "www.example.com"
+
+set :assets, true
+set :backup_db, false
+set :backup_sys, false
+set :auto_migrate, true
+
+
+role :app, serv
+role :web, serv
+role :db, serv, :primary => true
+FILE
+}
+
+base = ARGV.shift
+files.each do |file, content|
+  file = File.join(base, file)
+  if File.exists?(file)
+    warn "[skip] '#{file}' already exists"
+  elsif File.exists?(file.downcase)
+    warn "[skip] '#{file.downcase}' exists, which could conflict with `#{file}'"
+  else
+    unless File.exists?(File.dirname(file))
+      puts "[add] making directory '#{File.dirname(file)}'"
+      FileUtils.mkdir(File.dirname(file))
+    end
+    puts "[add] writing '#{file}'"
+    File.open(file, "w") { |f| f.write(content) }
+  end
+end
+
+puts "[done] capified!"
