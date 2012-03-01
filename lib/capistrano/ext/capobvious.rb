@@ -114,7 +114,7 @@ namespace :db do
     system "echo \"create database #{local_database} owner #{local_db_username};\" | #{run_local_psql}"
 #    system "#{run_local_psql} #{local_database} < #{local_folder_path}/#{db_file_name}"
     puts "ENTER your development password: #{local_db_password}"
-    system "psql -U#{local_db_username} #{local_database} < #{local_folder_path}/#{db_file_name}"
+    system "#{run_local_psql} -U#{local_db_username} #{local_database} < #{local_folder_path}/#{db_file_name}"
     system "rm #{local_folder_path}/#{db_file_name}"
   end
   task :pg_import do
