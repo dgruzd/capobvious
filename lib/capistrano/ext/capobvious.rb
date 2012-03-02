@@ -212,6 +212,20 @@ namespace :nginx do
     listen  80;
     server_name  #{server_name};
     root #{current_path}/public;
+#    location ~ ^/assets/ {
+#      expires 1y;
+#      add_header Cache-Control public;
+#      add_header ETag "";
+#      break;
+#    }
+
+    location ~ ^/(assets)/  {
+      root #{current_path}/public;
+      gzip_static on; # to serve pre-gzipped version
+      expires max;
+      add_header Cache-Control public;
+    }
+
     location / {
         try_files  $uri @unicorn;
     }
