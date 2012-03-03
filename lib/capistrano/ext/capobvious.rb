@@ -296,6 +296,17 @@ namespace :install do
   task :p7zip do
     run "#{sudo} apt-get --assume-yes install p7zip-full"
   end
+  desc "cap install:shmmax MAX=1024 (MB)"
+  task :shmmax do
+    if ENV.has_key?('MAX')
+      bits = ENV['MAX'].to_i*1024*1024
+      puts "setting shmmax to #{bits}"
+      run "#{sudo} sysctl -w kernel.shmmax=#{bits}"
+      run "echo 'kernel.shmmax=#{bits}' | #{sudo} tee -a /etc/sysctl.conf"
+    else
+      puts "Please run with MAX="
+    end
+  end
 end
 
 
