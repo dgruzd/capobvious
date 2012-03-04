@@ -159,7 +159,7 @@ namespace :restore do
     upload("#{local_folder_path}/#{file}","#{shared_path}/#{file}")
     run "rm -rfv #{shared_path}/system/*"
     run "7z x #{shared_path}/#{file} -o#{shared_path}"
-    run "chmod -R o+rX #{shared_path}/system"
+    run "chmod -R o=rX #{shared_path}/system"
     run "rm -v #{shared_path}/#{file}"
     end
   end
