@@ -134,6 +134,37 @@ namespace :import do
   end
 end
 
+#def prompt_with_default(var, default)
+#  set(var) do
+#    Capistrano::CLI.ui.ask “#{var} [#{default}] : ”
+#  end
+#  set var, default if eval(“#{var.to_s}.empty?”)
+#end
+
+namespace :restore do
+  task :sys do
+    result = {}
+    i = 0
+    Dir.foreach(local_folder_path) do |d|
+      if d.include?(sys_file_name.gsub(/\d+?(\.7z)/,""))
+        result[i.to_s] = d 
+        i+=1
+      end
+    end
+    result.each{|key,value| puts "#{key} - #{value} ##{Time.at(value.scan(/\d+/).first.to_i)} #{File.size(local_folder_path+'/'+value)}"}
+    select = Capistrano::CLI.ui.ask "select : "
+    file = result[select]
+    unless file.nil?
+    puts "You selected #{file}"
+    upload("#{local_folder_path}/#{file}","#{shared_path}/#{file}")
+    run "rm -rfv #{shared_path}/system/*"
+    run "7z x #{shared_path}/#{file} -o#{shared_path}"
+    run "chmod -R o+rX #{shared_path}/system"
+    run "rm -v #{shared_path}/#{file}"
+    end
+  end
+end
+
 # PRIKHA-TASK
 desc "Run custom task usage: cap rake TASK=patch:project_category"
 task :rake do
@@ -212,6 +243,10 @@ namespace :nginx do
     listen  80;
     server_name  #{server_name};
     root #{current_path}/public;
+
+    access_log  #{shared_path}/log/nginx.access_log;# buffer=32k;
+    error_log   #{shared_path}/log/nginx.error_log error;
+
 #    location ~ ^/assets/ {
 #      expires 1y;
 #      add_header Cache-Control public;
@@ -338,6 +373,8 @@ namespace :sphinx do
     end
   end
 end
+
+
 
 
 
