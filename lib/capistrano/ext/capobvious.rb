@@ -152,6 +152,7 @@ namespace :restore do
       end
     end
     result.each{|key,value| puts "#{key} - #{value} ##{Time.at(value.scan(/\d+/).first.to_i)} #{File.size(local_folder_path+'/'+value)}"}
+    puts "WARNING: IT WILL OVERWRITE public/system FOLDER!"
     select = Capistrano::CLI.ui.ask "select : "
     file = result[select]
     unless file.nil?
