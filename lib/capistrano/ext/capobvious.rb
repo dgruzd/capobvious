@@ -245,8 +245,8 @@ namespace :nginx do
     server_name  #{server_name};
     root #{current_path}/public;
 
-    access_log  #{shared_path}/log/nginx.access_log;# buffer=32k;
-    error_log   #{shared_path}/log/nginx.error_log error;
+#    access_log  #{shared_path}/log/nginx.access_log;# buffer=32k;
+#    error_log   #{shared_path}/log/nginx.error_log error;
 
 #    location ~ ^/assets/ {
 #      expires 1y;
