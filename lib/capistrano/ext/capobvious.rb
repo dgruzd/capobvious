@@ -310,7 +310,7 @@ Capistrano::Configuration.instance.load do
     desc "Run bundle install"
     task :install do
       without = ['development','test','production']-[rails_env]
-      run "cd #{current_path} && bundle install --without #{without.join(" ")}"
+      run "cd #{current_path} && bundle install --deployment --quiet --without #{without.join(" ")}"
     end
   end
 
