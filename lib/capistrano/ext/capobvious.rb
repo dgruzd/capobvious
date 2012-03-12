@@ -278,7 +278,7 @@ Capistrano::Configuration.instance.load do
       redirect_template = <<-RED
         server {
           server_name #{server_redirect};
-          rewrite ^(.*)$ http://#{server_name}$1 permanent;
+          rewrite ^(.*)$ http://#{server_name.split(' ').first}$1 permanent;
         }
         RED
         default_nginx_template += redirect_template
