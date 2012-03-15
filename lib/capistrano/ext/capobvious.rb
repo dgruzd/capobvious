@@ -217,7 +217,7 @@ Capistrano::Configuration.instance.load do
   namespace :assets do
     desc "Assets precompile"
     task :precompile do
-      system("bundle exec rake RAILS_ENV=development assets:precompile && cd public && tar czf assets.tar.gz assets/")
+      system("bundle exec rake assets:precompile && cd public && tar czf assets.tar.gz assets/")
       upload("public/assets.tar.gz","#{current_path}/public/assets.tar.gz")
       system("rm public/assets.tar.gz && rm -rf tmp/assets && mv public/assets tmp/assets")
       run("cd #{current_path}/public && rm -rf assets/ && tar xzf assets.tar.gz && rm assets.tar.gz")
