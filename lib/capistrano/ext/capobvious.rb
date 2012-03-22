@@ -10,28 +10,28 @@ Capistrano::Configuration.instance.load do
 
   set :rails_env, "production" unless exists?(:rails_env)
   set :branch, "master" unless exists?(:branch)
-  set :dbconf, "database.yml" unless exists?(:dbconf)
   set :deploy_to, "/home/#{user}/www/#{application}" unless exists?(:deploy_to)
   set :deploy_via, :remote_cache unless exists?(:deploy_via)
   set :keep_releases, 5 unless exists?(:keep_releases)
   set :use_sudo, false unless exists?(:use_sudo)
   set :scm, :git unless exists?(:scm)
 
-  if `uname -a`.include?("Darwin")
-    run_local_psql = "psql -h localhost -U postgres"
+  run_local_psql = if `uname -a`.include?("Darwin")
+    "psql -h localhost -U postgres"
   else
-    run_local_psql = "#{sudo} -u postgres psql"
+    "#{sudo} -u postgres psql"
   end
 
-  config = YAML::load(File.open("config/#{dbconf}"))
+  database_yml_path = "config/database.yml"
+  config = YAML::load(capture("cat #{current_path}/#{database_yml_path}"))
   adapter = config[rails_env]["adapter"]
   database = config[rails_env]["database"]
   db_username = config[rails_env]["username"]
   db_password = config[rails_env]["password"]
 
 
+  config = YAML::load(File.open(database_yml_path))
   local_rails_env = 'development'
-  config = YAML::load(File.open("config/database.yml"))
   local_adapter = config[local_rails_env]["adapter"]
   local_database = config[local_rails_env]["database"]
   local_db_username = config[local_rails_env]["username"]
