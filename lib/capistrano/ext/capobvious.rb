@@ -225,18 +225,13 @@ Capistrano::Configuration.instance.load do
   end
 
   namespace :nginx do
-    task :restart do
-      run "#{sudo} /etc/init.d/nginx restart"
+    [:stop, :start, :restart, :reload].each do |action|
+    desc "#{action.to_s} nginx"
+    task action, :roles => :web do
+      run "#{sudo} /etc/init.d/nginx #{action.to_s}"
     end
-    task :reload do
-      run "#{sudo} /etc/init.d/nginx reload"
-    end
-    task :start do
-      run "#{sudo} /etc/init.d/nginx start"
-    end
-    task :stop do
-      run "#{sudo} /etc/init.d/nginx stop"
-    end
+  end
+
     desc "Add app nginx conf to server"
     task :conf do
   default_nginx_template = <<-EOF
