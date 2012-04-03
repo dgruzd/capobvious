@@ -60,6 +60,7 @@ Capistrano::Configuration.instance.load do
 #load 'deploy/assets'
   namespace :auto do
     task :run do
+      bundle.install
       if exists?(:assets) && fetch(:assets) == true
         assets.precompile
       end
@@ -67,7 +68,6 @@ Capistrano::Configuration.instance.load do
       if exists?(:sphinx) && fetch(:sphinx) == true
         sphinx.symlink
       end
-      bundle.install
       if exists?(:auto_migrate) && fetch(:auto_migrate) == true
         db.migrate
       end
