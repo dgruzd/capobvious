@@ -74,12 +74,6 @@ Capistrano::Configuration.instance.load do
   namespace :create do
     task :files do
       create.rvmrc
-      if fetch(:dbconf) != 'database.yml'
-        create.database_yml
-      end
-    end
-    task :database_yml do
-      run "ln -sfv #{current_path}/config/#{dbconf} #{current_path}/config/database.yml"
     end
     desc "Create .rvmrc & files"
     task :rvmrc do
