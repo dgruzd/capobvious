@@ -217,8 +217,8 @@ Capistrano::Configuration.instance.load do
       run("cd #{current_path}/public && rm -rf assets/ && tar xzf assets.tar.gz && rm assets.tar.gz")
     end
     desc "Assets precompile"
-    task :server_precompile, :roles => :web, :except => { :no_release => true } do
-      run("cd #{current_path} && bundle exec rake RAILS_ENV=#{env} assets:precompile")
+    task :precompile, :roles => :web, :except => { :no_release => true } do
+      run("cd #{current_path} && bundle exec rake RAILS_ENV=#{rails_env} assets:precompile")
     end
   end
 
