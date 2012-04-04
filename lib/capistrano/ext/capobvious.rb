@@ -23,7 +23,14 @@ Capistrano::Configuration.instance.load do
   end
 
   database_yml_path = "config/database.yml"
-  config = YAML::load(capture("cat #{current_path}/#{database_yml_path}"))
+
+  serv_path = "#{current_path}/#{database_yml_path}"
+  if capture("if [ -f #{serv_path} ]; then echo '1'; fi") == '1'
+    database_yml = capture("cat #{serv_path}")
+  else
+    database_yml = File.open(database_yml_path)
+  end
+  config = YAML::load(database_yml)
   adapter = config[rails_env]["adapter"]
   database = config[rails_env]["database"]
   db_username = config[rails_env]["username"]
@@ -53,6 +60,7 @@ Capistrano::Configuration.instance.load do
 #load 'deploy/assets'
   namespace :auto do
     task :run do
+      bundle.install
       if exists?(:assets) && fetch(:assets) == true
         assets.precompile
       end
@@ -60,7 +68,6 @@ Capistrano::Configuration.instance.load do
       if exists?(:sphinx) && fetch(:sphinx) == true
         sphinx.symlink
       end
-      bundle.install
       if exists?(:auto_migrate) && fetch(:auto_migrate) == true
         db.migrate
       end
