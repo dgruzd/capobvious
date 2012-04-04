@@ -210,14 +210,14 @@ Capistrano::Configuration.instance.load do
 
   namespace :assets do
     desc "Local Assets precompile"
-    task :local_precompile do
+    task :precompile do
       system("bundle exec rake assets:precompile && cd public && tar czf assets.tar.gz assets/")
       upload("public/assets.tar.gz","#{current_path}/public/assets.tar.gz")
       system("rm public/assets.tar.gz && rm -rf tmp/assets && mv public/assets tmp/assets")
       run("cd #{current_path}/public && rm -rf assets/ && tar xzf assets.tar.gz && rm assets.tar.gz")
     end
     desc "Assets precompile"
-    task :precompile, :roles => :web, :except => { :no_release => true } do
+    task :remote_precompile, :roles => :web, :except => { :no_release => true } do
       run("cd #{current_path} && bundle exec rake RAILS_ENV=#{rails_env} assets:precompile")
     end
   end
