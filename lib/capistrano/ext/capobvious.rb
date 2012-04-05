@@ -392,25 +392,59 @@ Capistrano::Configuration.instance.load do
 
 
 
-
+  # Check if remote file exists
+        #
+  def remote_file_exists?(full_path)
+    'true' ==  capture("if [ -e #{full_path} ]; then echo 'true'; fi").strip
+  end
+        
+  # Check if process is running
+  #
+  def remote_process_exists?(pid_file)
+    capture("ps -p $(cat #{pid_file}) ; true").strip.split("\n").size == 2
+  end
 
   set :unicorn_conf, "#{current_path}/config/unicorn.rb"
   set :unicorn_pid, "#{shared_path}/pids/unicorn.pid"
   namespace :unicorn do
     desc "start unicorn"
     task :start do
+      if remote_file_exists?(unicorn_pid)
+        if remote_process_exists?(unicorn_pid)
+          logger.important("Unicorn is already running!", "Unicorn")
+          next
+        else
+          run "rm #{unicorn_pid}"
+        end
+      end
+      logger.important("Starting...", "Unicorn")
       run "cd #{current_path} && bundle exec unicorn -c #{unicorn_conf} -E #{rails_env} -D"
     end
     desc "stop unicorn"
     #task :stop, :roles => :app, :except => {:no_release => true} do
     task :stop do
-      run "if [ -f #{unicorn_pid} ] && [ -e /proc/$(cat #{unicorn_pid}) ]; then kill -QUIT `cat #{unicorn_pid}`; fi"
+      if remote_file_exists?(unicorn_pid)
+        if remote_process_exists?(unicorn_pid)
+          logger.important("Stopping...", "Unicorn")
+          run "if [ -f #{unicorn_pid} ] && [ -e /proc/$(cat #{unicorn_pid}) ]; then kill -QUIT `cat #{unicorn_pid}`; fi"
+        else
+          run "rm #{unicorn_pid}"
+          logger.important("Unicorn is not running.", "Unicorn")
+        end
+      else
+        logger.important("No PIDs found. Check if unicorn is running.", "Unicorn")
+      end
     end
     desc "restart unicorn"
     task :restart do
-      puts "Restarting unicorn"
-      unicorn.stop
-      unicorn.start
+      remote_file_exists = capture("ps -p $(cat #{unicorn_pid}) ; true").strip.split("\n").size == 2
+      if remote_file_exists
+        logger.important("Stopping...", "Unicorn")
+        run "#{try_sudo} kill -s USR2 `cat #{unicorn_pid}`"
+      else
+        logger.important("No PIDs found. Starting Unicorn server...", "Unicorn")
+        run "cd #{current_path} && bundle exec unicorn -c #{unicorn_conf} -E #{rails_env} -D"
+      end
     end
   end
 
