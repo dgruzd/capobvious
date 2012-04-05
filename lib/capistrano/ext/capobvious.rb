@@ -54,30 +54,51 @@ Capistrano::Configuration.instance.load do
 
 
   #after "deploy:symlink", "auto:run"
-  before "deploy:restart", "auto:run"
   #after "deploy:setup", "db:create", "nginx:conf", "install:p7zip"
 
-  load 'deploy/assets'
-# namespace :assets do
+# load 'deploy/assets'
+
+  after 'deploy:update_code', 'bundle:install', 'assets:precompile'
+  before 'deploy:finalize_update', 'assets:symlink'
+  before "deploy:restart", "auto:run"
+
+  namespace :assets do
     desc "Local Assets precompile"
-    task :precompile do
+    task :local_precompile do
       system("bundle exec rake assets:precompile && cd public && tar czf assets.tar.gz assets/")
       upload("public/assets.tar.gz","#{current_path}/public/assets.tar.gz")
       system("rm public/assets.tar.gz && rm -rf tmp/assets && mv public/assets tmp/assets")
       run("cd #{current_path}/public && rm -rf assets/ && tar xzf assets.tar.gz && rm assets.tar.gz")
     end
     desc "Assets precompile"
-    task :remote_precompile, :roles => :web, :except => { :no_release => true } do
-      run("cd #{current_path} && bundle exec rake RAILS_ENV=#{rails_env} assets:precompile")
+    task :precompile, :roles => :web, :except => { :no_release => true } do
+      run("cd #{latest_release} && bundle exec rake RAILS_ENV=#{rails_env} RAILS_GROUPS=assets assets:precompile")
     end
-#  end
+    task :symlink, :roles => :web, :except => { :no_release => true } do
+      run <<-CMD
+        rm -rf #{latest_release}/public/assets &&
+        mkdir -p #{latest_release}/public &&
+        mkdir -p #{shared_path}/assets &&
+        ln -s #{shared_path}/assets #{latest_release}/public/assets
+      CMD
+    end
+  end
+
+  namespace :bundle do
+    desc "Run bundle install"
+    task :install do
+      deployment = "--deployment --quiet"
+      without = ['development','test','production']-[rails_env]
+      run "cd #{latest_release} && bundle install --without #{without.join(" ")}"
+    end
+  end
 
   namespace :auto do
     task :run do
-      bundle.install
-      if exists?(:assets) && fetch(:assets) == true
+#      bundle.install
+#      if exists?(:assets) && fetch(:assets) == true
 #        assets.precompile
-      end
+#      end
       create.files
       if exists?(:sphinx) && fetch(:sphinx) == true
         sphinx.symlink
@@ -307,14 +328,6 @@ Capistrano::Configuration.instance.load do
   after "nginx:delconf", "nginx:reload"
 
 
-  namespace :bundle do
-    desc "Run bundle install"
-    task :install do
-      deployment = "--deployment --quiet"
-      without = ['development','test','production']-[rails_env]
-      run "cd #{current_path} && bundle install --without #{without.join(" ")}"
-    end
-  end
 
   namespace :log do
     desc "tail -f production.log"
