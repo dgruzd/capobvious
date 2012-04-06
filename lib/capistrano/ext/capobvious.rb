@@ -437,10 +437,9 @@ Capistrano::Configuration.instance.load do
     end
     desc "restart unicorn"
     task :restart do
-      remote_file_exists = capture("ps -p $(cat #{unicorn_pid}) ; true").strip.split("\n").size == 2
-      if remote_file_exists
+      if remote_file_exists?(unicorn_pid)
         logger.important("Stopping...", "Unicorn")
-        run "#{try_sudo} kill -s USR2 `cat #{unicorn_pid}`"
+        run "kill -s USR2 `cat #{unicorn_pid}`"
       else
         logger.important("No PIDs found. Starting Unicorn server...", "Unicorn")
         run "cd #{current_path} && bundle exec unicorn -c #{unicorn_conf} -E #{rails_env} -D"
