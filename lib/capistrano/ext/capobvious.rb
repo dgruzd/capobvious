@@ -49,8 +49,11 @@ Capistrano::Configuration.instance.load do
   set :local_folder_path, "tmp/backup"
   set :timestamp, Time.new.to_i.to_s
   set :db_file_name, "#{database}-#{timestamp}.sql"
-  set :sys_file_name, "#{application}-system-#{timestamp}.7z"
   set :db_archive_ext, "7z"
+  set :sys_file_name, "#{application}-system-#{timestamp}.#{db_archive_ext}"
+
+  set :arch_extract, "7z x"
+  set :arch_create, "7z a"
 
 
   #after "deploy:symlink", "auto:run"
@@ -145,7 +148,7 @@ Capistrano::Configuration.instance.load do
     task :import do
       file_name = "#{db_file_name}.#{db_archive_ext}"
       file_path = "#{local_folder_path}/#{file_name}"
-      system "cd #{local_folder_path} && 7z x #{file_name}"
+      system "cd #{local_folder_path} && #{arch_extract} #{file_name}"
       system "echo \"drop database #{local_database}\" | #{run_local_psql}"
       system "echo \"create database #{local_database} owner #{local_db_username};\" | #{run_local_psql}"
       #    system "#{run_local_psql} #{local_database} < #{local_folder_path}/#{db_file_name}"
@@ -163,7 +166,7 @@ Capistrano::Configuration.instance.load do
     task :sys do
       backup.sys
       system "rm -rfv public/system/"
-      system "7z x #{local_folder_path}/#{sys_file_name} -opublic"
+      system "#{arch_extract} #{local_folder_path}/#{sys_file_name} -opublic"
     end
     task :db do
       db.pg_import
@@ -182,7 +185,8 @@ Capistrano::Configuration.instance.load do
       result = {}
       i = 0
       Dir.foreach(local_folder_path) do |d|
-        if d.include?(sys_file_name.gsub(/\d+?(\.7z)/,""))
+        regexp = Regexp.new("\d+?(\.#{archive_ext})")
+        if d.include?(sys_file_name.gsub(regexp,""))
           result[i.to_s] = d
           i+=1
         end
@@ -195,7 +199,7 @@ Capistrano::Configuration.instance.load do
         puts "You selected #{file}"
         upload("#{local_folder_path}/#{file}","#{shared_path}/#{file}")
         run "rm -rfv #{shared_path}/system/*"
-        run "7z x #{shared_path}/#{file} -o#{shared_path}"
+        run "#{arch_extract} #{shared_path}/#{file} -o#{shared_path}"
         run "chmod -R o=rX #{shared_path}/system"
         run "rm -v #{shared_path}/#{file}"
       end
@@ -225,7 +229,7 @@ Capistrano::Configuration.instance.load do
       if adapter == "postgresql"
 
         run "export PGPASSWORD=\"#{db_password}\" && pg_dump -U #{db_username} #{database} > #{dump_file_path}"
-        run "cd #{shared_path} && 7z a #{output_file} #{dump_file_path} && rm #{dump_file_path}"
+        run "cd #{shared_path} && #{arch_create} #{output_file} #{dump_file_path} && rm #{dump_file_path}"
       else
         puts "Cannot backup, adapter #{adapter} is not implemented for backup yet"
       end
@@ -235,7 +239,7 @@ Capistrano::Configuration.instance.load do
     desc "Backup public/system folder"
     task :sys do
       file_path = "#{shared_path}/backup/#{sys_file_name}"
-      run "7z a #{file_path} #{shared_path}/system"
+      run "#{arch_create} #{file_path} #{shared_path}/system"
       download(file_path, "#{local_folder_path}/#{sys_file_name}")
     end
     task :all do
