@@ -238,6 +238,10 @@ Capistrano::Configuration.instance.load do
       run "7z a #{file_path} #{shared_path}/system"
       download(file_path, "#{local_folder_path}/#{sys_file_name}")
     end
+    task :all do
+      backup.db
+      backup.sys
+    end
     desc "Clean backup folder"
     task :clean do
       run "rm -rfv #{shared_path}/backup/*"
