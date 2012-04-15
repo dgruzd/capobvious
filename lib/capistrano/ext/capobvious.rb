@@ -87,6 +87,22 @@ Capistrano::Configuration.instance.load do
     end
   end
 
+  after "deploy:update_code", "create:dbconf"
+  namespace :create do
+    task :files do
+      create.rvmrc
+    end
+    desc "Create .rvmrc & files"
+    task :rvmrc do
+      put rvmrc, "#{current_path}/.rvmrc"
+    end
+    task :dbconf do
+      serv_path = (exists?(:dbconf) && fetch(:dbconf)) || "#{database_yml_path}.server"
+      if File.exist?(serv_path)
+        run "cd #{latest_release} && cp -v #{serv_path} #{database_yml_path}"
+      end
+    end
+  end
   namespace :bundle do
     desc "Run bundle install"
     task :install do
@@ -114,15 +130,6 @@ Capistrano::Configuration.instance.load do
       db.create
       nginx.conf
       install.p7zip
-    end
-  end
-  namespace :create do
-    task :files do
-      create.rvmrc
-    end
-    desc "Create .rvmrc & files"
-    task :rvmrc do
-      put rvmrc, "#{current_path}/.rvmrc"
     end
   end
 
