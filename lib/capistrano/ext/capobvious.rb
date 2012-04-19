@@ -61,8 +61,13 @@ Capistrano::Configuration.instance.load do
 
 # load 'deploy/assets'
 
-  after 'deploy:update_code', 'bundle:install', 'assets:precompile'
-  before 'deploy:finalize_update', 'assets:symlink'
+  after 'deploy:update_code', 'bundle:install'
+
+  
+  if !exists?(:assets) || fetch(:assets) == true
+    after 'deploy:update_code', 'assets:precompile'
+    before 'deploy:finalize_update', 'assets:symlink'
+  end
   before "deploy:restart", "auto:run"
 
   namespace :assets do
