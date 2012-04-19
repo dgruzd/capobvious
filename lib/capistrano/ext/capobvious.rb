@@ -291,6 +291,7 @@ Capistrano::Configuration.instance.load do
 #      add_header ETag "";
 #      break;
 #    }
+    #{exists?(:nginx_add)? fetch(:nginx_add) : ""}
 
     location ~ ^/(assets)/  {
       root #{current_path}/public;
