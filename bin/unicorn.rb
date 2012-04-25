@@ -12,7 +12,7 @@ SHARED_PATH = File.expand_path(APP_PATH+"/../shared")
 
 
   timeout 30
-  worker_processes 4
+  worker_processes 2
   preload_app true
   listen socket_file, :backlog => 1024
   pid pid_file
