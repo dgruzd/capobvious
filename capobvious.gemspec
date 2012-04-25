@@ -19,6 +19,7 @@ Gem::Specification.new do |s|
   s.require_paths = ["lib"]
 
   s.add_dependency "capistrano"
+  s.add_dependency "rvm-capistrano"
 
   # specify any dependencies here; for example:
   # s.add_development_dependency "rspec"
