@@ -80,7 +80,7 @@ Capistrano::Configuration.instance.load do
     end
     desc "Assets precompile"
     task :precompile, :roles => :web, :except => { :no_release => true } do
-      run("cd #{latest_release} && bundle exec rake RAILS_ENV=#{rails_env} RAILS_GROUPS=assets assets:precompile")
+      run("cd #{latest_release} && bundle exec rake RAILS_ENV=#{rails_env} assets:precompile")
     end
     task :symlink, :roles => :web, :except => { :no_release => true } do
       run <<-CMD
