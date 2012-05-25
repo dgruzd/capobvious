@@ -99,7 +99,7 @@ SHARED_PATH = File.expand_path(APP_PATH+"/../shared")
 
 
 before_exec do |server|
-  ENV["BUNDLE_GEMFILE"] = APP_PATH}+"/Gemfile"
+  ENV["BUNDLE_GEMFILE"] = APP_PATH+"/Gemfile"
 end
 
 before_fork do |server, worker|
