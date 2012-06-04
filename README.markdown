@@ -38,7 +38,7 @@ run rake db:seed with right RAILS_ENV
 import remote server postgresql database to your development postgresql database IT WILL DELETE YOUR DEV DATABASE (NOTE: need installed p7zip)
 
 
-r**rake TASK=db:seed**  
+**rake TASK=db:seed**  
 runs custom rake task
 
 
