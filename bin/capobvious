@@ -52,6 +52,7 @@ set :user, "USER_NAME_HERE"
 set :serv, "IP_ADDRESS_HERE"
 
 set :repository,  "REPOSITORY_HERE"
+set :branch, "master"
 set :server_name, "example.com"
 set :server_redirect, "www.example.com"
 
@@ -60,12 +61,19 @@ set :backup_db, false
 set :backup_sys, false
 set :auto_migrate, true
 
+#set :deploy_to, "/home/user/www/application"
+set :deploy_via, :remote_cache
+
+set :keep_releases, 5
+set :use_sudo, false
+
+set :scm, :git
 
 role :app, serv
 role :web, serv
 role :db, serv, :primary => true
 FILE
-  "config/unicorn.rb" => <<FILE
+"config/unicorn.rb" => <<FILE
 # -*- encoding : utf-8 -*-
 APP_PATH = File.expand_path(File.dirname(File.dirname(__FILE__)))
 SHARED_PATH = File.expand_path(APP_PATH+"/../shared")
@@ -91,7 +99,7 @@ SHARED_PATH = File.expand_path(APP_PATH+"/../shared")
 
 
 before_exec do |server|
-  ENV["BUNDLE_GEMFILE"] = APP_PATH}+"/Gemfile"
+  ENV["BUNDLE_GEMFILE"] = APP_PATH+"/Gemfile"
 end
 
 before_fork do |server, worker|

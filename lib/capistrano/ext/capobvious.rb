@@ -48,12 +48,14 @@ Capistrano::Configuration.instance.load do
 
   set :local_folder_path, "tmp/backup"
   set :timestamp, Time.new.to_i.to_s
-  set :db_file_name, "#{database}-#{timestamp}.sql"
-  set :db_archive_ext, "7z"
-  set :sys_file_name, "#{application}-system-#{timestamp}.#{db_archive_ext}"
+  set :db_archive_ext, "tar.bz2"
+  set :arch_extract, "tar -xvjf"
+  set :arch_create, "tar -cjf"
 
-  set :arch_extract, "7z x"
-  set :arch_create, "7z a"
+  set :db_file_name, "#{database}-#{timestamp}.sql"
+  set :sys_file_name, "#{application}-system-#{timestamp}.#{db_archive_ext}"
+  set :del_backup, true
+
 
 
   #after "deploy:symlink", "auto:run"
@@ -239,24 +241,32 @@ Capistrano::Configuration.instance.load do
       file_name = fetch(:db_file_name)
       archive_ext = fetch(:db_archive_ext)
       dump_file_path = "#{shared_path}/backup/#{file_name}"
-      output_file = "#{dump_file_path}.#{archive_ext}"
+      output_file = "#{file_name}.#{archive_ext}"
+      output_file_path = "#{dump_file_path}.#{archive_ext}"
       require 'yaml'
       run "mkdir -p #{shared_path}/backup"
       if adapter == "postgresql"
-
+        logger.important("Backup database #{database}", "Backup:db")
         run "export PGPASSWORD=\"#{db_password}\" && pg_dump -U #{db_username} #{database} > #{dump_file_path}"
-        run "cd #{shared_path} && #{arch_create} #{output_file} #{dump_file_path} && rm #{dump_file_path}"
+        run "cd #{shared_path}/backup && #{arch_create} #{output_file} #{file_name} && rm #{dump_file_path}"
       else
         puts "Cannot backup, adapter #{adapter} is not implemented for backup yet"
       end
       system "mkdir -p #{local_folder_path}"
-      download(output_file, "#{local_folder_path}/#{file_name}.#{archive_ext}")
+      download_path = "#{local_folder_path}/#{file_name}.#{archive_ext}"
+      logger.important("Downloading database to #{download_path}", "Backup:db")
+      download(output_file_path, download_path)
+      run "rm -v #{output_file_path}" if fetch(:del_backup)
     end
     desc "Backup public/system folder"
     task :sys do
       file_path = "#{shared_path}/backup/#{sys_file_name}"
-      run "#{arch_create} #{file_path} #{shared_path}/system"
-      download(file_path, "#{local_folder_path}/#{sys_file_name}")
+      logger.important("Backup shared/system folder", "Backup:sys")
+      run "#{arch_create} #{file_path} -C #{shared_path} system"
+      download_path = "#{local_folder_path}/#{sys_file_name}"
+      logger.important("Downloading system to #{download_path}", "Backup:db")
+      download(file_path, download_path)
+      run "rm -v #{file_path}" if fetch(:del_backup)
     end
     task :all do
       backup.db
@@ -476,5 +486,11 @@ Capistrano::Configuration.instance.load do
     task :restart do
       unicorn.restart
     end
+  end
+
+
+  def file_size(file_path)
+    size = run("wc -c #{file_path} | cut -d' ' -f1")
+    return size
   end
 end
