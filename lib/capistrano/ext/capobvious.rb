@@ -159,6 +159,10 @@ Capistrano::Configuration.instance.load do
     task :reset do
       run "cd #{current_path} && bundle exec rake RAILS_ENV=#{rails_env} db:reset"
     end
+    task :hard_reset
+      run "cd #{current_path} && bundle exec rake RAILS_ENV=#{rails_env} db:migrate VERSION=0 && bundle exec rake RAILS_ENV=#{rails_env} db:migrate && bundle exec rake RAILS_ENV=#{rails_env} db:seed"
+    end
+
     task :migrate do
       run "cd #{current_path} && bundle exec rake RAILS_ENV=#{rails_env} db:migrate"
     end
