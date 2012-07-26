@@ -44,7 +44,7 @@ Capistrano::Configuration.instance.load do
   local_rails_env = 'development'
   local_adapter = config[local_rails_env]["adapter"]
   local_database = config[local_rails_env]["database"]
-  local_db_username = config[local_rails_env]["username"]
+  local_db_username = config[local_rails_env]["username"]||`whoami`.chop
   local_db_password = config[local_rails_env]["password"]
 
 
@@ -170,7 +170,7 @@ Capistrano::Configuration.instance.load do
       file_name = "#{db_file_name}.#{db_archive_ext}"
       file_path = "#{local_folder_path}/#{file_name}"
       system "cd #{local_folder_path} && #{arch_extract} #{file_name}"
-      system "echo \"drop database #{local_database}\" | #{run_local_psql}"
+      system "echo \"drop database IF EXISTS #{local_database}\" | #{run_local_psql}"
       system "echo \"create database #{local_database} owner #{local_db_username};\" | #{run_local_psql}"
       #    system "#{run_local_psql} #{local_database} < #{local_folder_path}/#{db_file_name}"
       puts "ENTER your development password: #{local_db_password}"
