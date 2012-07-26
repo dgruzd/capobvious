@@ -19,11 +19,13 @@ Capistrano::Configuration.instance.load do
 
   set :unicorn_init, "unicorn_#{application}"
 
-  run_local_psql = if `uname -a`.include?("Darwin")
-    "psql -h localhost -U postgres"
-  else
-    "#{sudo} -u postgres psql"
-  end
+  psql = "psql -h localhost"
+  psql_postgres = "#{psql} -U postgres"
+
+#  psql_postgre = if `uname -a`.include?("Darwin")
+#  else
+#    "#{sudo} -u postgres psql"
+#  end
 
   database_yml_path = "config/database.yml"
 
@@ -170,11 +172,11 @@ Capistrano::Configuration.instance.load do
       file_name = "#{db_file_name}.#{db_archive_ext}"
       file_path = "#{local_folder_path}/#{file_name}"
       system "cd #{local_folder_path} && #{arch_extract} #{file_name}"
-      system "echo \"drop database IF EXISTS #{local_database}\" | #{run_local_psql}"
-      system "echo \"create database #{local_database} owner #{local_db_username};\" | #{run_local_psql}"
-      #    system "#{run_local_psql} #{local_database} < #{local_folder_path}/#{db_file_name}"
+      system "echo \"drop database IF EXISTS #{local_database}\" | #{psql_postgres}"
+      system "echo \"create database #{local_database} owner #{local_db_username};\" | #{psql_postgres}"
+      #    system "#{psql_postgre} #{local_database} < #{local_folder_path}/#{db_file_name}"
       puts "ENTER your development password: #{local_db_password}"
-      system "#{run_local_psql} -U#{local_db_username} #{local_database} < #{local_folder_path}/#{db_file_name}"
+      system "#{psql} -U#{local_db_username} #{local_database} < #{local_folder_path}/#{db_file_name}"
       system "rm #{local_folder_path}/#{db_file_name}"
     end
     task :pg_import do
