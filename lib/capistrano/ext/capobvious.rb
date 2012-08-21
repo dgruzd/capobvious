@@ -99,6 +99,18 @@ Capistrano::Configuration.instance.load do
     end
   end
 
+  namespace :delayed_job do 
+    desc 'Start the delayed_job process'
+    task :start, :roles => :app do
+      run "cd #{current_path} && RAILS_ENV=#{rails_env} script/delayed_job start"
+    end
+    desc "Restart the delayed_job process"
+    task :restart, :roles => :app do
+      logger.important 'Restarting delayed_job process'
+      run "cd #{current_path}; RAILS_ENV=#{rails_env} script/delayed_job restart"
+    end
+  end
+
   after "deploy:update_code", "create:dbconf"
   namespace :create do
     task :files do
@@ -136,6 +148,9 @@ Capistrano::Configuration.instance.load do
       end
       if exists?(:auto_migrate) && fetch(:auto_migrate) == true
         db.migrate
+      end
+      if exists?(:delayed_job) && fetch(:delayed_job) == true
+        delayed_job.restart
       end
     end
     task :prepare do
