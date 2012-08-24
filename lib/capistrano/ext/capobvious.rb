@@ -62,6 +62,15 @@ Capistrano::Configuration.instance.load do
   set :del_backup, true
 
 
+  def gem_use?(name)
+    gemfile_lock = File.read("Gemfile.lock")
+    return (gemfile_lock =~ /^\s*delayed_job\s+\(/)? true : false
+  end
+
+  if gem_use?('delayed_job')
+    logger.important("delayed_job set to true")
+    set :delayed_job, true
+  end
 
   #after "deploy:symlink", "auto:run"
   #after "deploy:setup", "db:create", "nginx:conf", "install:p7zip"
