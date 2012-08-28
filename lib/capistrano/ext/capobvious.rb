@@ -68,8 +68,10 @@ Capistrano::Configuration.instance.load do
   end
 
   if gem_use?('delayed_job')
-    logger.important("delayed_job set to true")
-    set :delayed_job, true
+    unless exists?(:delayed_job)
+      logger.important("delayed_job set to true")
+      set :delayed_job, true
+    end
   end
 
   #after "deploy:symlink", "auto:run"
