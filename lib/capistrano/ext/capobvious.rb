@@ -80,6 +80,7 @@ Capistrano::Configuration.instance.load do
 # load 'deploy/assets'
 
   after 'deploy:update_code', 'bundle:install'
+  after "deploy:update", "deploy:cleanup"
 
   
   if !exists?(:assets) || fetch(:assets) == true
