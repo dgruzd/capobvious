@@ -55,7 +55,7 @@ Capistrano::Configuration.instance.load do
   set :timestamp, Time.new.to_i.to_s
   set :db_archive_ext, "tar.bz2"
   set :arch_extract, "tar -xvjf"
-  set :arch_create, "tar -cjf"
+  set :arch_create, "tar -cvjf"
 
   set :db_file_name, "#{database}-#{timestamp}.sql"
   set :sys_file_name, "#{application}-system-#{timestamp}.#{db_archive_ext}"
