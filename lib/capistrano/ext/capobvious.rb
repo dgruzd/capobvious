@@ -222,9 +222,9 @@ Capistrano::Configuration.instance.load do
       system "rm -rfv public/system/"
       system "cd public && #{arch_extract} ../#{local_folder_path}/#{sys_file_name}"
     end
-    task :db do
-      db.pg_import
-    end
+#   task :db do
+#     db.pg_import
+#   end
   end
 
   #def prompt_with_default(var, default)
