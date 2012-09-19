@@ -220,7 +220,7 @@ Capistrano::Configuration.instance.load do
     task :sys do
       backup.sys
       system "rm -rfv public/system/"
-      system "#{arch_extract} #{local_folder_path}/#{sys_file_name} -opublic"
+      system "cd public && #{arch_extract} ../#{local_folder_path}/#{sys_file_name}"
     end
     task :db do
       db.pg_import
