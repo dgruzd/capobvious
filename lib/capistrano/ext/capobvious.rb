@@ -18,6 +18,8 @@ Capistrano::Configuration.instance.load do
 
 
   set :unicorn_init, "unicorn_#{application}"
+  set :unicorn_conf, "#{current_path}/config/unicorn.rb"
+  set :unicorn_pid, "#{shared_path}/pids/unicorn.pid"
 
   psql = "psql -h localhost"
   psql_postgres = "#{psql} -U postgres"
@@ -462,6 +464,62 @@ Capistrano::Configuration.instance.load do
   end
 
 
+  def which(name)
+    run "which #{name}"
+  end
+
+
+  namespace :runit do
+    desc "init"
+    task :init, :roles => :web do
+      join_ruby = rvm_ruby_string[/\d.\d.\d/].delete('.')
+      local_runit_path = "#{shared_path}/runit_temp"
+      runit = "/etc/sv/#{application}"
+      runit_path = "/etc/service/#{application}"
+      wrapper = "#{join_ruby}_unicorn"
+      logger.important('Creating unicorn wrapper', 'runit')
+      run "rvm wrapper #{rvm_ruby_string} #{join_ruby} unicorn"
+
+      run = <<EOF
+#!/bin/sh
+exec 2>&1
+export USER=#{user}
+export HOME=/home/$USER
+export RAILS_ENV=#{rails_env}
+UNICORN="/home/#{user}/.rvm/bin/#{wrapper}"
+UNICORN_CONF=#{unicorn_conf}
+cd #{current_path}
+exec chpst -u $USER:$USER $UNICORN -c $UNICORN_CONF
+EOF
+log_run = <<EOF
+#!/bin/bash
+LOG_FOLDER=/var/log/#{application}
+mkdir -p $LOG_FOLDER
+exec svlogd -tt $LOG_FOLDER
+EOF
+
+logger.important('Creating local runit path', 'runit')
+run "mkdir -p #{local_runit_path}/log"
+logger.important('Creating run script', 'runit')
+put run, "#{local_runit_path}/run"
+run "chmod +x #{local_runit_path}/run"
+logger.important('Creating log script', 'runit')
+put log_run, "#{local_runit_path}/log/run"
+run "chmod +x #{local_runit_path}/log/run"
+
+run "#{sudo} mv #{local_runit_path} #{runit} && #{sudo} ln -s #{runit} #{runit_path}"
+sudo chown -R root:root /etc/sv/three-elements/
+
+#logger.important('Creating symlink', 'runit')
+#symlink = "#{sudo} ln -s #{local_runit_path} #{runit_path}"
+#run symlink
+
+#puts "$ cat #{runit_path}/run"
+#puts run
+    end
+  end
+
+
 
   # Check if remote file exists
         #
@@ -475,8 +533,6 @@ Capistrano::Configuration.instance.load do
     capture("ps -p $(cat #{pid_file}) ; true").strip.split("\n").size == 2
   end
 
-  set :unicorn_conf, "#{current_path}/config/unicorn.rb"
-  set :unicorn_pid, "#{shared_path}/pids/unicorn.pid"
   namespace :unicorn do
     desc "start unicorn"
     task :start do
