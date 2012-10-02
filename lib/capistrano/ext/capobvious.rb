@@ -57,7 +57,7 @@ Capistrano::Configuration.instance.load do
   set :timestamp, Time.new.to_i.to_s
   set :db_archive_ext, "tar.bz2"
   set :arch_extract, "tar -xvjf"
-  set :arch_create, "tar -cjf"
+  set :arch_create, "tar -cvjf"
 
   set :db_file_name, "#{database}-#{timestamp}.sql"
   set :sys_file_name, "#{application}-system-#{timestamp}.#{db_archive_ext}"
@@ -222,11 +222,11 @@ Capistrano::Configuration.instance.load do
     task :sys do
       backup.sys
       system "rm -rfv public/system/"
-      system "#{arch_extract} #{local_folder_path}/#{sys_file_name} -opublic"
+      system "cd public && #{arch_extract} ../#{local_folder_path}/#{sys_file_name}"
     end
-    task :db do
-      db.pg_import
-    end
+#   task :db do
+#     db.pg_import
+#   end
   end
 
   #def prompt_with_default(var, default)
