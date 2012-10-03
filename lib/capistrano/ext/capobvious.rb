@@ -508,7 +508,7 @@ put log_run, "#{local_runit_path}/log/run"
 run "chmod +x #{local_runit_path}/log/run"
 
 run "#{sudo} mv #{local_runit_path} #{runit} && #{sudo} ln -s #{runit} #{runit_path}"
-sudo chown -R root:root /etc/sv/three-elements/
+run "#{sudo} chown -R root:root #{runit}"
 
 #logger.important('Creating symlink', 'runit')
 #symlink = "#{sudo} ln -s #{local_runit_path} #{runit_path}"
