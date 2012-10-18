@@ -184,6 +184,7 @@ Capistrano::Configuration.instance.load do
       if adapter == "postgresql"
         run "echo \"create user #{db_username} with password '#{db_password}';\" | #{sudo} -u postgres psql"
         run "echo \"create database #{database} owner #{db_username};\" | #{sudo} -u postgres psql"
+        run "echo \"CREATE EXTENSION IF NOT EXISTS hstore;\" | #{sudo} -u postgres psql #{database}" if exists?(:hstore) && fetch(:hstore)     == true
       else
         puts "Cannot create, adapter #{adapter} is not implemented yet"
       end
