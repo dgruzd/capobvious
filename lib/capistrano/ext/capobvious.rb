@@ -469,8 +469,14 @@ Capistrano::Configuration.instance.load do
     run "which #{name}"
   end
 
-
   namespace :runit do
+    [:stop, :start, :restart, :reload].each do |action|
+    desc "#{action.to_s} runit"
+    task action, :roles => :web do
+      run "#{sudo} sv #{action.to_s} #{application}"
+    end
+    end
+
     desc "init"
     task :init, :roles => :web do
       join_ruby = rvm_ruby_string[/\d.\d.\d/].delete('.')
