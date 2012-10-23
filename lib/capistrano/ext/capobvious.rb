@@ -651,6 +651,9 @@ EOF
 
   after 'deploy:setup', 'logrotate:init'
 
+  set :logrotate_path, '/etc/logrotate.d'
+  set :logrotate_file_name, "cap_#{application}"
+  set :logrotate_file, "#{logrotate_path}/#{logrotate_file_name}"
   namespace :logrotate do
     #http://stackoverflow.com/questions/4883891/ruby-on-rails-production-log-rotation
     task :init do
@@ -668,9 +671,12 @@ EOF
     copytruncate
 }
         |
-      temp_path =  "/tmp/logrotate_#{application}"
+      temp_path =  "/tmp/#{logrotate_file_name}"
       put str, temp_path
-      run "#{sudo} mv -v #{temp_path} /etc/logrotate.d/cap_#{application}"
+      run "#{sudo} mv -v #{temp_path} #{logrotate_file}"
+    end
+    task :stop do
+      run "#{sudo} rm #{logrotate_file}"
     end
   end
 
