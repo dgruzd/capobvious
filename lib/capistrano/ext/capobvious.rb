@@ -659,9 +659,10 @@ EOF
     task :init do
       str = %|
     #{shared_path}/log/*.log {
-    weekly
+    rotate 10
+    size=32M
     missingok
-    rotate 52
+    #weekly
     compress
     delaycompress
     notifempty
