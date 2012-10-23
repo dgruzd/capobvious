@@ -487,7 +487,7 @@ Capistrano::Configuration.instance.load do
       logger.important('Creating unicorn wrapper', 'runit')
       run "rvm wrapper #{rvm_ruby_string} #{join_ruby} unicorn"
 
-      run = <<EOF
+      runit_run = <<EOF
 #!/bin/sh
 exec 2>&1
 export USER=#{user}
@@ -508,7 +508,7 @@ EOF
 logger.important('Creating local runit path', 'runit')
 run "mkdir -p #{local_runit_path}/log"
 logger.important('Creating run script', 'runit')
-put run, "#{local_runit_path}/run"
+put runit_run, "#{local_runit_path}/run"
 run "chmod +x #{local_runit_path}/run"
 logger.important('Creating log script', 'runit')
 put log_run, "#{local_runit_path}/log/run"
