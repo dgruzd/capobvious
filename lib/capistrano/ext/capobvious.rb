@@ -75,7 +75,7 @@ Capistrano::Configuration.instance.load do
 
   after 'deploy:update_code', 'bundle:install'
   after "deploy:update", "deploy:cleanup"
-  
+
   if !exists?(:assets) || fetch(:assets) == true
     after 'deploy:update_code', 'assets:precompile'
     before 'deploy:finalize_update', 'assets:symlink'
@@ -147,10 +147,10 @@ Capistrano::Configuration.instance.load do
 
   namespace :auto do
     task :run do
-#      bundle.install
-#      if exists?(:assets) && fetch(:assets) == true
-#        assets.precompile
-#      end
+      #      bundle.install
+      #      if exists?(:assets) && fetch(:assets) == true
+      #        assets.precompile
+      #      end
       create.files
       if exists?(:sphinx) && fetch(:sphinx) == true
         sphinx.symlink
@@ -210,15 +210,38 @@ Capistrano::Configuration.instance.load do
     end
   end
 
+  def which(name)
+    str = capture("which #{name}").chop
+    return false if str == ''
+    str
+  rescue
+    false
+  end
+  def local_which(name)
+    str = `which #{name}`.chop
+    return false if str == ''
+    str
+  rescue
+    false
+  end
+  def ssh_port
+    exists?(:port) ? fetch(:port) : 22
+  end
+
+
   namespace :import do
     task :sys do
-      backup.sys
-      system "rm -rfv public/system/"
-      system "cd public && #{arch_extract} ../#{local_folder_path}/#{sys_file_name}"
+      #system "rm -rfv public/system/"
+      if which('rsync') && local_which('rsync')
+        logger.important('Importing with rsync', 'import:sys')
+        system "rsync -avz --rsh='ssh -p#{ssh_port}' #{user}@#{serv}:#{shared_path}/system public/"
+      else
+        backup.sys
+        system "cd public && #{arch_extract} ../#{local_folder_path}/#{sys_file_name}"
+      end
     end
-#   task :db do
-#     db.pg_import
-#   end
+  end
+  namespace :export do
   end
 
   #def prompt_with_default(var, default)
@@ -317,15 +340,15 @@ Capistrano::Configuration.instance.load do
 
   namespace :nginx do
     [:stop, :start, :restart, :reload].each do |action|
-    desc "#{action.to_s} nginx"
-    task action, :roles => :web do
-      run "#{sudo} /etc/init.d/nginx #{action.to_s}"
+      desc "#{action.to_s} nginx"
+      task action, :roles => :web do
+        run "#{sudo} /etc/init.d/nginx #{action.to_s}"
+      end
     end
-  end
 
     desc "Add app nginx conf to server"
     task :conf do
-  default_nginx_template = <<-EOF
+      default_nginx_template = <<-EOF
     server {
     listen  80;
     server_name  #{server_name};
@@ -340,7 +363,7 @@ Capistrano::Configuration.instance.load do
 #      add_header ETag "";
 #      break;
 #    }
-    #{exists?(:nginx_add)? fetch(:nginx_add) : ""}
+      #{exists?(:nginx_add)? fetch(:nginx_add) : ""}
 
     location ~ ^/(assets)/  {
       root #{current_path}/public;
@@ -362,7 +385,7 @@ Capistrano::Configuration.instance.load do
       EOF
       if exists?(:server_redirect)
         server_redirect = fetch(:server_redirect)#.split(" ")
-      redirect_template = <<-RED
+        redirect_template = <<-RED
         server {
           server_name #{server_redirect};
           rewrite ^(.*)$ http://#{server_name.split(' ').first}$1 permanent;
@@ -456,16 +479,13 @@ Capistrano::Configuration.instance.load do
   end
 
 
-  def which(name)
-    run "which #{name}"
-  end
 
   namespace :runit do
     [:stop, :start, :restart, :reload].each do |action|
-    desc "#{action.to_s} runit"
-    task action, :roles => :web do
-      run "#{sudo} sv #{action.to_s} #{application}"
-    end
+      desc "#{action.to_s} runit"
+      task action, :roles => :web do
+        run "#{sudo} sv #{action.to_s} #{application}"
+      end
     end
 
     desc "init"
@@ -520,11 +540,11 @@ run "#{sudo} chown -R root:root #{runit}"
 
 
   # Check if remote file exists
-        #
+  #
   def remote_file_exists?(full_path)
     'true' ==  capture("if [ -e #{full_path} ]; then echo 'true'; fi").strip
   end
-        
+
   # Check if process is running
   #
   def remote_process_exists?(pid_file)
@@ -594,31 +614,31 @@ PID=<% unicorn_pid %>
 
 case "$1" in
   start)
-	echo -n "Starting $DESC: "
-	$DAEMON $DAEMON_OPTS
-	echo "$NAME."
-	;;
+  echo -n "Starting $DESC: "
+  $DAEMON $DAEMON_OPTS
+  echo "$NAME."
+  ;;
   stop)
-	echo -n "Stopping $DESC: "
+  echo -n "Stopping $DESC: "
         kill -QUIT `cat $PID`
-	echo "$NAME."
-	;;
+  echo "$NAME."
+  ;;
   restart)
-	echo -n "Restarting $DESC: "
+  echo -n "Restarting $DESC: "
         kill -QUIT `cat $PID`
-	sleep 1
-	$DAEMON $DAEMON_OPTS
-	echo "$NAME."
-	;;
+  sleep 1
+  $DAEMON $DAEMON_OPTS
+  echo "$NAME."
+  ;;
   reload)
         echo -n "Reloading $DESC configuration: "
         kill -HUP `cat $PID`
         echo "$NAME."
         ;;
   *)
-	echo "Usage: $NAME {start|stop|restart|reload}" >&2
-	exit 1
-	;;
+  echo "Usage: $NAME {start|stop|restart|reload}" >&2
+  exit 1
+  ;;
 esac
 
 exit 0
@@ -658,7 +678,7 @@ EOF
     #http://stackoverflow.com/questions/4883891/ruby-on-rails-production-log-rotation
     task :init do
       str = %|
-    #{shared_path}/log/*.log {
+      #{shared_path}/log/*.log {
     size=32M
     rotate 10
     missingok
