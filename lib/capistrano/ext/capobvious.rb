@@ -659,16 +659,12 @@ EOF
     task :init do
       str = %|
     #{shared_path}/log/*.log {
-    rotate 10
     size=32M
+    rotate 10
     missingok
-    #weekly
     compress
     delaycompress
     notifempty
-    create 640 root adm
-    sharedscripts
-    endscript
     copytruncate
 }
         |
