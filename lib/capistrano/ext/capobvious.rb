@@ -16,7 +16,6 @@ Capistrano::Configuration.instance.load do
   set :use_sudo, false unless exists?(:use_sudo)
   set :scm, :git unless exists?(:scm)
 
-
   set :unicorn_init, "unicorn_#{application}"
   set :unicorn_conf, "#{current_path}/config/unicorn.rb"
   set :unicorn_pid, "#{shared_path}/pids/unicorn.pid"
@@ -24,25 +23,19 @@ Capistrano::Configuration.instance.load do
   psql = "psql -h localhost"
   psql_postgres = "#{psql} -U postgres"
 
-#  psql_postgre = if `uname -a`.include?("Darwin")
-#  else
-#    "#{sudo} -u postgres psql"
-#  end
-
   database_yml_path = "config/database.yml"
 
   serv_path = "#{current_path}/#{database_yml_path}"
-  if capture("if [ -f #{serv_path} ]; then echo '1'; fi") == '1'
-    database_yml = capture("cat #{serv_path}")
-  else
-    database_yml = File.open(database_yml_path)
-  end
+  #if capture("if [ -f #{serv_path} ]; then echo '1'; fi") == '1'
+  #  database_yml = capture("cat #{serv_path}")
+  #else
+  database_yml = File.open(database_yml_path)
+  #end
   config = YAML::load(database_yml)
   adapter = config[rails_env]["adapter"]
   database = config[rails_env]["database"]
   db_username = config[rails_env]["username"]
   db_password = config[rails_env]["password"]
-
 
   config = YAML::load(File.open(database_yml_path))
   local_rails_env = 'development'
@@ -50,8 +43,6 @@ Capistrano::Configuration.instance.load do
   local_database = config[local_rails_env]["database"]
   local_db_username = config[local_rails_env]["username"]||`whoami`.chop
   local_db_password = config[local_rails_env]["password"]
-
-
 
   set :local_folder_path, "tmp/backup"
   set :timestamp, Time.new.to_i.to_s
@@ -63,27 +54,27 @@ Capistrano::Configuration.instance.load do
   set :sys_file_name, "#{application}-system-#{timestamp}.#{db_archive_ext}"
   set :del_backup, true
 
-
   def gem_use?(name)
     gemfile_lock = File.read("Gemfile.lock")
-    return (gemfile_lock =~ /^\s*delayed_job\s+\(/)? true : false
+    return (gemfile_lock =~ /^\s*#{name}\s+\(/)? true : false
   end
 
-  if gem_use?('delayed_job')
-    unless exists?(:delayed_job)
-      logger.important("delayed_job set to true")
-      set :delayed_job, true
+  VarGems = {'delayed_job' => :delayed_job, 'activerecord-postgres-hstore' => :hstore}
+
+  VarGems.each do |gem,var|
+    gem = gem.to_s
+    var = var.to_sym
+    if gem_use?(gem)
+      unless exists?(var)
+        logger.debug "gem '#{gem}' is found"
+        logger.important("#{var} set to true")
+        set var, true
+      end
     end
   end
 
-  #after "deploy:symlink", "auto:run"
-  #after "deploy:setup", "db:create", "nginx:conf", "install:p7zip"
-
-# load 'deploy/assets'
-
   after 'deploy:update_code', 'bundle:install'
   after "deploy:update", "deploy:cleanup"
-
   
   if !exists?(:assets) || fetch(:assets) == true
     after 'deploy:update_code', 'assets:precompile'
@@ -657,4 +648,30 @@ EOF
     size = run("wc -c #{file_path} | cut -d' ' -f1")
     return size
   end
+
+  after 'deploy:setup', 'logrotate:init'
+
+  namespace :logrotate do
+    #http://stackoverflow.com/questions/4883891/ruby-on-rails-production-log-rotation
+    task :init do
+      str = %|
+    #{shared_path}/log/*.log {
+    weekly
+    missingok
+    rotate 52
+    compress
+    delaycompress
+    notifempty
+    create 640 root adm
+    sharedscripts
+    endscript
+    copytruncate
+}
+        |
+      temp_path =  "/tmp/logrotate_#{application}"
+      put str, temp_path
+      run "#{sudo} mv -v #{temp_path} /etc/logrotate.d/cap_#{application}"
+    end
+  end
+
 end
