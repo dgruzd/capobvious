@@ -552,6 +552,26 @@ run "#{sudo} chown -R root:root #{runit}"
   end
 
   namespace :unicorn do
+    desc "init autostart unicorn"
+    task :autostart do
+      #cd /home/rails/www/three-elements/current && sudo -u rails -H /home/rails/.rvm/bin/193_bundle exec /home/rails/.rvm/bin/193_unicorn -c /home/rails/www/three-elements/current/config/unicorn.rb -E production -D
+      join_ruby = rvm_ruby_string[/\d.\d.\d/].delete('.')
+      ruby_wrapper = "#{join_ruby}_unicorn"
+      ruby_wrapper_path = "/home/#{user}/.rvm/bin/#{ruby_wrapper}"
+      bundle_wrapper = "#{join_ruby}_bundle"
+      bundle_wrapper_path = "/home/#{user}/.rvm/bin/#{bundle_wrapper}"
+
+      run "rvm wrapper #{rvm_ruby_string} #{join_ruby} unicorn"
+      run "rvm wrapper #{rvm_ruby_string} #{join_ruby} bundle"
+      #puts "sudo -u #{user} -H /home/#{user}/.rvm/bin/#{wrapper} -c #{unicorn_conf} -E production -D"
+      command = "cd #{current_path} && sudo -u #{user} -H #{bundle_wrapper_path} exec #{ruby_wrapper_path} -c #{unicorn_conf} -E production -D"
+      puts command
+
+      run "#{sudo} sed -i 's/exit 0//g' /etc/rc.local"
+      run "echo \"#{command}\" | #{sudo} tee -a /etc/rc.local"
+      run "echo \"exit 0\" | #{sudo} tee -a /etc/rc.local"
+    end
+
     desc "start unicorn"
     task :start do
       if remote_file_exists?(unicorn_pid)
