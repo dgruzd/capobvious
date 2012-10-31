@@ -59,7 +59,7 @@ Capistrano::Configuration.instance.load do
     return (gemfile_lock =~ /^\s*#{name}\s+\(/)? true : false
   end
 
-  VarGems = {'delayed_job' => :delayed_job, 'activerecord-postgres-hstore' => :hstore}
+  VarGems = {'delayed_job' => :delayed_job, 'activerecord-postgres-hstore' => :hstore, 'sitemap_generator' => :sitemap_generator}
 
   VarGems.each do |gem,var|
     gem = gem.to_s
@@ -120,6 +120,13 @@ Capistrano::Configuration.instance.load do
     end
   end
 
+  namespace :sitemap_generator do
+    desc 'Start rack refresh sitemap project'
+    task :refresh do
+      run "cd #{current_release} && RAILS_ENV=#{rails_env} bundle exec rake sitemap:refresh"
+    end
+  end
+
   after "deploy:update_code", "create:dbconf"
   namespace :create do
     task :files do
@@ -157,6 +164,9 @@ Capistrano::Configuration.instance.load do
       end
       if exists?(:auto_migrate) && fetch(:auto_migrate) == true
         db.migrate
+      end
+      if exists?(:sitemap_generator)  && fetch(:sitemap_generator) == true
+        sitemap_generator.refresh
       end
       if exists?(:delayed_job) && fetch(:delayed_job) == true
         delayed_job.restart
