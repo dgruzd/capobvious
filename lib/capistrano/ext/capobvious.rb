@@ -171,11 +171,25 @@ Capistrano::Configuration.instance.load do
       if exists?(:delayed_job) && fetch(:delayed_job) == true
         delayed_job.restart
       end
+
+
     end
     task :prepare do
       db.create
       nginx.conf
       install.p7zip
+    end
+
+
+    task :runtask do
+      path = "#{latest_release}/script/autorun.task"
+      if remote_file_exists?(path)
+        logger.important "Launching autorun commands"
+        cmds = capture("cat #{path}").split("\n").map(&:strip).map{|cmd| "RAILS_ENV=#{rails_env} #{cmd}" }
+        puts "cd #{latest_release} && #{cmds.join(' && ')}"
+      else
+        logger.important "autorun script not found"
+      end
     end
   end
 
