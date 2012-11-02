@@ -17,7 +17,7 @@ Capistrano::Configuration.instance.load do
   set :scm, :git unless exists?(:scm)
 
   set :unicorn_init, "unicorn_#{application}"
-  set :unicorn_conf, "#{latest_release}/config/unicorn.rb"
+  set :unicorn_conf, "#{current_path}/config/unicorn.rb"
   set :unicorn_pid, "#{shared_path}/pids/unicorn.pid"
 
   psql = "psql -h localhost"
@@ -25,7 +25,7 @@ Capistrano::Configuration.instance.load do
 
   database_yml_path = "config/database.yml"
 
-  serv_path = "#{latest_release}/#{database_yml_path}"
+  serv_path = "#{current_path}/#{database_yml_path}"
   #if capture("if [ -f #{serv_path} ]; then echo '1'; fi") == '1'
   #  database_yml = capture("cat #{serv_path}")
   #else
@@ -123,7 +123,7 @@ Capistrano::Configuration.instance.load do
   namespace :sitemap_generator do
     desc 'Start rack refresh sitemap project'
     task :refresh do
-      run "cd #{latest_release} && bundle exec rake RAILS_ENV=#{rails_env} sitemap:refresh --trace"
+      run "cd #{latest_release} && bundle exec rake RAILS_ENV=#{rails_env} sitemap:refresh"
     end
   end
 
@@ -292,7 +292,7 @@ Capistrano::Configuration.instance.load do
   task :rake do
     if ENV.has_key?('TASK')
       p "running rake task: #{ENV['TASK']}"
-      run "cd #{latest_release} && bundle exec rake RAILS_ENV=#{rails_env} #{ENV['TASK']}"
+      run "cd #{current_path} && bundle exec rake RAILS_ENV=#{rails_env} #{ENV['TASK']}"
     else
       puts 'Please specify correct task: cap rake TASK= some_task'
     end
@@ -362,7 +362,7 @@ Capistrano::Configuration.instance.load do
     server {
     listen  80;
     server_name  #{server_name};
-    root #{latest_release}/public;
+    root #{current_path}/public;
 
 #    access_log  #{shared_path}/log/nginx.access_log;# buffer=32k;
 #    error_log   #{shared_path}/log/nginx.error_log error;
@@ -376,7 +376,7 @@ Capistrano::Configuration.instance.load do
       #{exists?(:nginx_add)? fetch(:nginx_add) : ""}
 
     location ~ ^/(assets)/  {
-      root #{latest_release}/public;
+      root #{current_path}/public;
       gzip_static on; # to serve pre-gzipped version
       expires max;
       add_header Cache-Control public;
@@ -430,7 +430,7 @@ Capistrano::Configuration.instance.load do
   namespace :log do
     desc "tail -f production.log"
     task :tail do
-      stream("tail -f -n 0 #{latest_release}/log/production.log")
+      stream("tail -f -n 0 #{current_path}/log/production.log")
     end
   end
 
@@ -516,7 +516,7 @@ export HOME=/home/$USER
 export RAILS_ENV=#{rails_env}
 UNICORN="/home/#{user}/.rvm/bin/#{wrapper}"
 UNICORN_CONF=#{unicorn_conf}
-cd #{latest_release}
+cd #{current_path}
 exec chpst -u $USER:$USER $UNICORN -c $UNICORN_CONF
 EOF
 log_run = <<EOF
@@ -574,7 +574,7 @@ run "#{sudo} chown -R root:root #{runit}"
       run "rvm wrapper #{rvm_ruby_string} #{join_ruby} unicorn"
       run "rvm wrapper #{rvm_ruby_string} #{join_ruby} bundle"
       #puts "sudo -u #{user} -H /home/#{user}/.rvm/bin/#{wrapper} -c #{unicorn_conf} -E production -D"
-      command = "cd #{latest_release} && sudo -u #{user} -H #{bundle_wrapper_path} exec #{ruby_wrapper_path} -c #{unicorn_conf} -E production -D"
+      command = "cd #{current_path} && sudo -u #{user} -H #{bundle_wrapper_path} exec #{ruby_wrapper_path} -c #{unicorn_conf} -E production -D"
       puts command
 
       run "#{sudo} sed -i 's/exit 0//g' /etc/rc.local"
@@ -593,7 +593,7 @@ run "#{sudo} chown -R root:root #{runit}"
         end
       end
       logger.important("Starting...", "Unicorn")
-      run "cd #{latest_release} && bundle exec unicorn -c #{unicorn_conf} -E #{rails_env} -D"
+      run "cd #{current_path} && bundle exec unicorn -c #{unicorn_conf} -E #{rails_env} -D"
     end
     desc "stop unicorn"
     #task :stop, :roles => :app, :except => {:no_release => true} do
@@ -617,7 +617,7 @@ run "#{sudo} chown -R root:root #{runit}"
         run "kill -s USR2 `cat #{unicorn_pid}`"
       else
         logger.important("No PIDs found. Starting Unicorn server...", "Unicorn")
-        run "cd #{latest_release} && bundle exec unicorn -c #{unicorn_conf} -E #{rails_env} -D"
+        run "cd #{current_path} && bundle exec unicorn -c #{unicorn_conf} -E #{rails_env} -D"
       end
     end
 
