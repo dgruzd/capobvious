@@ -17,7 +17,7 @@ Capistrano::Configuration.instance.load do
   set :scm, :git unless exists?(:scm)
 
   set :unicorn_init, "unicorn_#{application}"
-  set :unicorn_conf, "#{current_path}/config/unicorn.rb"
+  set :unicorn_conf, "#{latest_release}/config/unicorn.rb"
   set :unicorn_pid, "#{shared_path}/pids/unicorn.pid"
 
   psql = "psql -h localhost"
@@ -25,7 +25,7 @@ Capistrano::Configuration.instance.load do
 
   database_yml_path = "config/database.yml"
 
-  serv_path = "#{current_path}/#{database_yml_path}"
+  serv_path = "#{latest_release}/#{database_yml_path}"
   #if capture("if [ -f #{serv_path} ]; then echo '1'; fi") == '1'
   #  database_yml = capture("cat #{serv_path}")
   #else
@@ -80,15 +80,15 @@ Capistrano::Configuration.instance.load do
     after 'deploy:update_code', 'assets:precompile'
     before 'deploy:finalize_update', 'assets:symlink'
   end
-  before "deploy:restart", "auto:run"
+  after "deploy:update_code", "auto:run"
 
   namespace :assets do
     desc "Local Assets precompile"
     task :local_precompile do
       system("bundle exec rake assets:precompile && cd public && tar czf assets.tar.gz assets/")
-      upload("public/assets.tar.gz","#{current_path}/public/assets.tar.gz")
+      upload("public/assets.tar.gz","#{latest_release}/public/assets.tar.gz")
       system("rm public/assets.tar.gz && rm -rf tmp/assets && mv public/assets tmp/assets")
-      run("cd #{current_path}/public && rm -rf assets/ && tar xzf assets.tar.gz && rm assets.tar.gz")
+      run("cd #{latest_release}/public && rm -rf assets/ && tar xzf assets.tar.gz && rm assets.tar.gz")
     end
     desc "Assets precompile"
     task :precompile, :roles => :web, :except => { :no_release => true } do
@@ -107,23 +107,23 @@ Capistrano::Configuration.instance.load do
   namespace :delayed_job do 
     desc 'Start the delayed_job process'
     task :start, :roles => :app do
-      run "cd #{current_path} && RAILS_ENV=#{rails_env} script/delayed_job start"
+      run "cd #{latest_release} && RAILS_ENV=#{rails_env} script/delayed_job start"
     end
     desc "Restart the delayed_job process"
     task :restart, :roles => :app do
       logger.important 'Restarting delayed_job process'
-      run "cd #{current_path}; RAILS_ENV=#{rails_env} script/delayed_job restart"
+      run "cd #{latest_release}; RAILS_ENV=#{rails_env} script/delayed_job restart"
     end
     desc 'Stop the delayed_job process'
     task :stop, :roles => :app do
-      run "cd #{current_path} && RAILS_ENV=#{rails_env} script/delayed_job stop"
+      run "cd #{latest_release} && RAILS_ENV=#{rails_env} script/delayed_job stop"
     end
   end
 
   namespace :sitemap_generator do
     desc 'Start rack refresh sitemap project'
     task :refresh do
-      run "cd #{current_path} && RAILS_ENV=#{rails_env} bundle exec rake sitemap:refresh"
+      run "cd #{latest_release} && bundle exec rake RAILS_ENV=#{rails_env} sitemap:refresh --trace"
     end
   end
 
@@ -134,7 +134,7 @@ Capistrano::Configuration.instance.load do
     end
     desc "Create .rvmrc & files"
     task :rvmrc do
-      put rvmrc, "#{current_path}/.rvmrc"
+      put rvmrc, "#{latest_release}/.rvmrc"
     end
     task :dbconf do
       serv_path = (exists?(:dbconf) && fetch(:dbconf)) || "#{database_yml_path}.server"
@@ -191,17 +191,17 @@ Capistrano::Configuration.instance.load do
       end
     end
     task :seed do
-      run "cd #{current_path} && bundle exec rake RAILS_ENV=#{rails_env} db:seed"
+      run "cd #{latest_release} && bundle exec rake RAILS_ENV=#{rails_env} db:seed"
     end
     task :reset do
-      run "cd #{current_path} && bundle exec rake RAILS_ENV=#{rails_env} db:reset"
+      run "cd #{latest_release} && bundle exec rake RAILS_ENV=#{rails_env} db:reset"
     end
     task :hard_reset do
-      run "cd #{current_path} && bundle exec rake RAILS_ENV=#{rails_env} db:migrate VERSION=0 && bundle exec rake RAILS_ENV=#{rails_env} db:migrate && bundle exec rake RAILS_ENV=#{rails_env} db:seed"
+      run "cd #{latest_release} && bundle exec rake RAILS_ENV=#{rails_env} db:migrate VERSION=0 && bundle exec rake RAILS_ENV=#{rails_env} db:migrate && bundle exec rake RAILS_ENV=#{rails_env} db:seed"
     end
 
     task :migrate do
-      run "cd #{current_path} && bundle exec rake RAILS_ENV=#{rails_env} db:migrate"
+      run "cd #{latest_release} && bundle exec rake RAILS_ENV=#{rails_env} db:migrate"
     end
     task :import do
       file_name = "#{db_file_name}.#{db_archive_ext}"
@@ -292,7 +292,7 @@ Capistrano::Configuration.instance.load do
   task :rake do
     if ENV.has_key?('TASK')
       p "running rake task: #{ENV['TASK']}"
-      run "cd #{current_path} && bundle exec rake RAILS_ENV=#{rails_env} #{ENV['TASK']}"
+      run "cd #{latest_release} && bundle exec rake RAILS_ENV=#{rails_env} #{ENV['TASK']}"
     else
       puts 'Please specify correct task: cap rake TASK= some_task'
     end
@@ -362,7 +362,7 @@ Capistrano::Configuration.instance.load do
     server {
     listen  80;
     server_name  #{server_name};
-    root #{current_path}/public;
+    root #{latest_release}/public;
 
 #    access_log  #{shared_path}/log/nginx.access_log;# buffer=32k;
 #    error_log   #{shared_path}/log/nginx.error_log error;
@@ -376,7 +376,7 @@ Capistrano::Configuration.instance.load do
       #{exists?(:nginx_add)? fetch(:nginx_add) : ""}
 
     location ~ ^/(assets)/  {
-      root #{current_path}/public;
+      root #{latest_release}/public;
       gzip_static on; # to serve pre-gzipped version
       expires max;
       add_header Cache-Control public;
@@ -430,7 +430,7 @@ Capistrano::Configuration.instance.load do
   namespace :log do
     desc "tail -f production.log"
     task :tail do
-      stream("tail -f -n 0 #{current_path}/log/production.log")
+      stream("tail -f -n 0 #{latest_release}/log/production.log")
     end
   end
 
@@ -462,19 +462,19 @@ Capistrano::Configuration.instance.load do
   namespace :sphinx do
     desc "Rebuild indexes"
     task :rebuild, :roles => :app, :except => {:no_release => true} do
-      run "cd #{current_path} && bundle exec rake RAILS_ENV=#{rails_env} ts:rebuild"
+      run "cd #{latest_release} && bundle exec rake RAILS_ENV=#{rails_env} ts:rebuild"
     end
     desc "Sphinx start"
     task :start, :roles => :app, :except => {:no_release => true} do
-      run "cd #{current_path} && bundle exec rake RAILS_ENV=#{rails_env} ts:start"
+      run "cd #{latest_release} && bundle exec rake RAILS_ENV=#{rails_env} ts:start"
     end
     desc "Sphinx stop"
     task :stop, :roles => :app, :except => {:no_release => true} do
-      run "cd #{current_path} && bundle exec rake RAILS_ENV=#{rails_env} ts:stop"
+      run "cd #{latest_release} && bundle exec rake RAILS_ENV=#{rails_env} ts:stop"
     end
     desc "Sphinx configure"
     task :stop, :roles => :app, :except => {:no_release => true} do
-      run "cd #{current_path} && bundle exec rake RAILS_ENV=#{rails_env} ts:conf"
+      run "cd #{latest_release} && bundle exec rake RAILS_ENV=#{rails_env} ts:conf"
     end
     desc "Re-establish symlinks"
     task :symlink do
@@ -516,7 +516,7 @@ export HOME=/home/$USER
 export RAILS_ENV=#{rails_env}
 UNICORN="/home/#{user}/.rvm/bin/#{wrapper}"
 UNICORN_CONF=#{unicorn_conf}
-cd #{current_path}
+cd #{latest_release}
 exec chpst -u $USER:$USER $UNICORN -c $UNICORN_CONF
 EOF
 log_run = <<EOF
@@ -574,7 +574,7 @@ run "#{sudo} chown -R root:root #{runit}"
       run "rvm wrapper #{rvm_ruby_string} #{join_ruby} unicorn"
       run "rvm wrapper #{rvm_ruby_string} #{join_ruby} bundle"
       #puts "sudo -u #{user} -H /home/#{user}/.rvm/bin/#{wrapper} -c #{unicorn_conf} -E production -D"
-      command = "cd #{current_path} && sudo -u #{user} -H #{bundle_wrapper_path} exec #{ruby_wrapper_path} -c #{unicorn_conf} -E production -D"
+      command = "cd #{latest_release} && sudo -u #{user} -H #{bundle_wrapper_path} exec #{ruby_wrapper_path} -c #{unicorn_conf} -E production -D"
       puts command
 
       run "#{sudo} sed -i 's/exit 0//g' /etc/rc.local"
@@ -593,7 +593,7 @@ run "#{sudo} chown -R root:root #{runit}"
         end
       end
       logger.important("Starting...", "Unicorn")
-      run "cd #{current_path} && bundle exec unicorn -c #{unicorn_conf} -E #{rails_env} -D"
+      run "cd #{latest_release} && bundle exec unicorn -c #{unicorn_conf} -E #{rails_env} -D"
     end
     desc "stop unicorn"
     #task :stop, :roles => :app, :except => {:no_release => true} do
@@ -617,7 +617,7 @@ run "#{sudo} chown -R root:root #{runit}"
         run "kill -s USR2 `cat #{unicorn_pid}`"
       else
         logger.important("No PIDs found. Starting Unicorn server...", "Unicorn")
-        run "cd #{current_path} && bundle exec unicorn -c #{unicorn_conf} -E #{rails_env} -D"
+        run "cd #{latest_release} && bundle exec unicorn -c #{unicorn_conf} -E #{rails_env} -D"
       end
     end
 
