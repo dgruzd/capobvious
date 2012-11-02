@@ -123,7 +123,7 @@ Capistrano::Configuration.instance.load do
   namespace :sitemap_generator do
     desc 'Start rack refresh sitemap project'
     task :refresh do
-      run "cd #{current_release} && RAILS_ENV=#{rails_env} bundle exec rake sitemap:refresh"
+      run "cd #{current_path} && RAILS_ENV=#{rails_env} bundle exec rake sitemap:refresh"
     end
   end
 
