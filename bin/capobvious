@@ -36,6 +36,8 @@ def unindent(string)
   string.strip.gsub(/^#{indentation}/, "")
 end
 
+repository=`git remote -v`.split("\n").first.split("\t").last.split(/\s+/).first rescue nil
+
 files = {
   "Capfile" => <<FILE,
 load 'deploy'
@@ -51,7 +53,7 @@ set :application, "appname"
 set :user, "USER_NAME_HERE"
 set :serv, "IP_ADDRESS_HERE"
 
-set :repository,  "REPOSITORY_HERE"
+set :repository,  "#{repository||'REPOSITORY_HERE'}"
 set :branch, "master"
 set :server_name, "example.com"
 set :server_redirect, "www.example.com"
