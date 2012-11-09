@@ -10,7 +10,7 @@ Capistrano::Configuration.instance.load do
 
   set :rails_env, "production" unless exists?(:rails_env)
   set :branch, "master" unless exists?(:branch)
-  set :deploy_to, "/home/#{user}/www/#{application}" unless exists?(:deploy_to)
+  set :deploy_to, "/home/#{user}/www/#{application}" unless exists?(:deploy_folder)
   set :deploy_via, :remote_cache unless exists?(:deploy_via)
   set :keep_releases, 5 unless exists?(:keep_releases)
   set :use_sudo, false unless exists?(:use_sudo)
