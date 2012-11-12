@@ -29,20 +29,21 @@ Capistrano::Configuration.instance.load do
   #if capture("if [ -f #{serv_path} ]; then echo '1'; fi") == '1'
   #  database_yml = capture("cat #{serv_path}")
   #else
-  database_yml = File.open(database_yml_path)
+  database_yml = File.open(database_yml_path) rescue nil
   #end
-  config = YAML::load(database_yml)
-  adapter = config[rails_env]["adapter"]
-  database = config[rails_env]["database"]
-  db_username = config[rails_env]["username"]
-  db_password = config[rails_env]["password"]
+  if database_yml
+    config = YAML::load(database_yml)
+    adapter = config[rails_env]["adapter"]
+    database = config[rails_env]["database"]
+    db_username = config[rails_env]["username"]
+    db_password = config[rails_env]["password"]
 
-  config = YAML::load(File.open(database_yml_path))
-  local_rails_env = 'development'
-  local_adapter = config[local_rails_env]["adapter"]
-  local_database = config[local_rails_env]["database"]
-  local_db_username = config[local_rails_env]["username"]||`whoami`.chop
-  local_db_password = config[local_rails_env]["password"]
+    local_rails_env = 'development'
+    local_adapter = config[local_rails_env]["adapter"]
+    local_database = config[local_rails_env]["database"]
+    local_db_username = config[local_rails_env]["username"]||`whoami`.chop
+    local_db_password = config[local_rails_env]["password"]
+  end
 
   set :local_folder_path, "tmp/backup"
   set :timestamp, Time.new.to_i.to_s
