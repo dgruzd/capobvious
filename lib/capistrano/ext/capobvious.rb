@@ -708,6 +708,27 @@ EOF
     end
   end
 
+  if gem_use?('whenever') && exists?(:whenever) && fetch(:whenever) == true
+    set :whenever_command, "bundle exec whenever"
+    require "whenever/capistrano/recipes"
+    after "bundle:install", "whenever:update_crontab"
+    after "deploy:rollback", "whenever:update_crontab"
+  end
+
+  #namespace :whenever do
+  #  task :update_crontab do
+  #    run "cd #{latest_release} && bundle exec rake RAILS_ENV=#{rails_env} whenever:update_crontab"
+  #  end
+  #end
+
+  def local_gem_available?(name)
+    Gem::Specification.find_by_name(name)
+  rescue Gem::LoadError
+    false
+  rescue
+    Gem.available?(name)
+  end
+
 
   def file_size(file_path)
     size = run("wc -c #{file_path} | cut -d' ' -f1")
