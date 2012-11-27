@@ -2,7 +2,7 @@
 require "rvm/capistrano"
 
 Capistrano::Configuration.instance.load do
-  rvmrc = "rvm use #{rvm_ruby_string}"
+  rvmrc = "rvm use #{rvm_ruby_string}" if exists?(:rvm_ruby_string)
   set :rvm_type, :user
 
   default_run_options[:pty] = true
@@ -131,7 +131,7 @@ Capistrano::Configuration.instance.load do
   after "deploy:update_code", "create:dbconf"
   namespace :create do
     task :files do
-      create.rvmrc
+      create.rvmrc if exists?(:rvmrc)
     end
     desc "Create .rvmrc & files"
     task :rvmrc do
