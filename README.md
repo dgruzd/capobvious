@@ -69,6 +69,13 @@ cap backup:db   # Backup postgresql server database to local project/tmp/backup 
 cap backup:sys  # Backup shared/system folder to local project/tmp/backup folder
 cap backup:all  # Run backup:db backup:sys
 ```
+### bundle
+```ruby
+require 'capobvious/recipes/bundle'
+```
+```sh
+cap bundle:install  # run automatically on deploy
+```
 
 ## Contributing
 
