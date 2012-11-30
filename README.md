@@ -83,6 +83,14 @@ require 'capobvious/recipes/bundle'
 cap bundle:install  # run automatically on deploy
 ```
 
+### log
+```ruby
+require 'capobvious/recipes/log'
+```
+```sh
+cap log:tail    # stream production.log
+```
+
 ## Contributing
 
 1. Fork it
