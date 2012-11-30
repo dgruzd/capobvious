@@ -1,6 +1,6 @@
 Capistrano::Configuration.instance(:must_exist).load do
 
-  if !exists?(:assets) || fetch(:assets) == true
+  if exists?(:assets) && fetch(:assets) == true
     after 'bundle:install', 'assets:precompile'
     before 'deploy:finalize_update', 'assets:symlink'
   end

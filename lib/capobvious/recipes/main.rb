@@ -81,7 +81,7 @@ Capistrano::Configuration.instance(:must_exist).load do
   end
 
 
-  after "deploy:update_code", "auto:run"
+  after "bundle:install", "auto:run"
   namespace :auto do
     task :run do
       if exists?(:auto_migrate) && fetch(:auto_migrate) == true
@@ -152,12 +152,6 @@ Capistrano::Configuration.instance(:must_exist).load do
 
 
 
-  namespace :log do
-    desc "tail -f production.log"
-    task :tail do
-      stream("tail -f -n 0 #{current_path}/log/production.log")
-    end
-  end
 
 
 

@@ -14,6 +14,15 @@ Capistrano::Configuration.instance(:must_exist).load do
 
     desc "Add app nginx conf to server"
     task :conf do
+      assets_template = <<-EOF
+    location ~ ^/(assets)/  {
+      root #{current_path}/public;
+      gzip_static on; # to serve pre-gzipped version
+      expires max;
+      add_header Cache-Control public;
+    }
+      EOF
+
       default_nginx_template = <<-EOF
     server {
     listen  80;
@@ -31,12 +40,7 @@ Capistrano::Configuration.instance(:must_exist).load do
 #    }
       #{exists?(:nginx_add)? fetch(:nginx_add) : ""}
 
-    location ~ ^/(assets)/  {
-      root #{current_path}/public;
-      gzip_static on; # to serve pre-gzipped version
-      expires max;
-      add_header Cache-Control public;
-    }
+      #{(exists?(:assets)&&fetch(:assets)==true)? assets_template : ''}
 
     location / {
         try_files  $uri @unicorn;

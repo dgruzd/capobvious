@@ -34,8 +34,9 @@ Capistrano::Configuration.instance(:must_exist).load do
     task :create do
       yml = database_yml
       if yml[:adapter] == "postgresql"
-        run "echo \"create user #{yml[:username]} with password '#{yml[:password]}';\" | #{sudo} -u postgres psql"
-        run "echo \"create database #{yml[:database]} owner #{yml[:username]};\" | #{sudo} -u postgres psql"
+        sql = %|create user #{yml[:username]} with password '#{yml[:password]}';|
+        sql+= %|create database #{yml[:database]} owner #{yml[:username]};|
+        run "echo \"#{sql}\" | #{sudo} -u postgres psql"
         run "echo \"CREATE EXTENSION IF NOT EXISTS hstore;\" | #{sudo} -u postgres psql #{yml[:database]}" if exists?(:hstore) && fetch(:hstore)     == true
       else
         puts "Cannot create, adapter #{yml[:adapter]} is not implemented yet"

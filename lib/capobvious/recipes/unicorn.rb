@@ -1,29 +1,10 @@
 Capistrano::Configuration.instance(:must_exist).load do
-  set :unicorn_init, "unicorn_#{fetch(:application)}"
-  set :unicorn_conf, "#{current_path}/config/unicorn.rb"
-  set :unicorn_pid, "#{shared_path}/pids/unicorn.pid"
+
+  _cset(:unicorn_init){ "unicorn_#{application}"}
+  _cset(:unicorn_conf) {"#{current_path}/config/unicorn.rb"}
+  _cset(:unicorn_pid){"#{shared_path}/pids/unicorn.pid"}
 
   namespace :unicorn do
-    desc "init autostart unicorn"
-    task :autostart do
-      #cd /home/rails/www/three-elements/current && sudo -u rails -H /home/rails/.rvm/bin/193_bundle exec /home/rails/.rvm/bin/193_unicorn -c /home/rails/www/three-elements/current/config/unicorn.rb -E production -D
-      join_ruby = ruby_version[/\d.\d.\d/].delete('.')
-      ruby_wrapper = "#{join_ruby}_unicorn"
-      ruby_wrapper_path = "/home/#{user}/.rvm/bin/#{ruby_wrapper}"
-      bundle_wrapper = "#{join_ruby}_bundle"
-      bundle_wrapper_path = "/home/#{user}/.rvm/bin/#{bundle_wrapper}"
-
-      run "rvm wrapper #{ruby_version} #{join_ruby} unicorn"
-      run "rvm wrapper #{ruby_version} #{join_ruby} bundle"
-      #puts "sudo -u #{user} -H /home/#{user}/.rvm/bin/#{wrapper} -c #{unicorn_conf} -E production -D"
-      command = "cd #{current_path} && sudo -u #{user} -H #{bundle_wrapper_path} exec #{ruby_wrapper_path} -c #{unicorn_conf} -E production -D"
-      puts command
-
-      run "#{sudo} sed -i 's/exit 0//g' /etc/rc.local"
-      run "echo \"#{command}\" | #{sudo} tee -a /etc/rc.local"
-      run "echo \"exit 0\" | #{sudo} tee -a /etc/rc.local"
-    end
-
     desc "start unicorn"
     task :start do
       if remote_file_exists?(unicorn_pid)
@@ -63,5 +44,25 @@ Capistrano::Configuration.instance(:must_exist).load do
       end
     end
   end
+
+    desc "init autostart unicorn"
+    task :autostart do
+      #cd /home/rails/www/three-elements/current && sudo -u rails -H /home/rails/.rvm/bin/193_bundle exec /home/rails/.rvm/bin/193_unicorn -c /home/rails/www/three-elements/current/config/unicorn.rb -E production -D
+      join_ruby = ruby_version[/\d.\d.\d/].delete('.')
+      ruby_wrapper = "#{join_ruby}_unicorn"
+      ruby_wrapper_path = "/home/#{user}/.rvm/bin/#{ruby_wrapper}"
+      bundle_wrapper = "#{join_ruby}_bundle"
+      bundle_wrapper_path = "/home/#{user}/.rvm/bin/#{bundle_wrapper}"
+
+      run "rvm wrapper #{ruby_version} #{join_ruby} unicorn"
+      run "rvm wrapper #{ruby_version} #{join_ruby} bundle"
+      #puts "sudo -u #{user} -H /home/#{user}/.rvm/bin/#{wrapper} -c #{unicorn_conf} -E production -D"
+      command = "cd #{current_path} && sudo -u #{user} -H #{bundle_wrapper_path} exec #{ruby_wrapper_path} -c #{unicorn_conf} -E production -D"
+      puts command
+
+      run "#{sudo} sed -i 's/exit 0//g' /etc/rc.local"
+      run "echo \"#{command}\" | #{sudo} tee -a /etc/rc.local"
+      run "echo \"exit 0\" | #{sudo} tee -a /etc/rc.local"
+    end
 
 end

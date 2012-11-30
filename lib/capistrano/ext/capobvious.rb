@@ -13,4 +13,6 @@ require 'capobvious/recipes/whenever'
 require 'capobvious/recipes/rake'
 require 'capobvious/recipes/import'
 require 'capobvious/recipes/nginx'
+require 'capobvious/recipes/log'
+
 
