@@ -18,7 +18,13 @@ Or install it yourself as:
 
 ## Usage
 
-If you want to use all recipes add to the end of Capfile  
+If project don't have capistrano yet, you can run
+```sh
+capobvious .
+```
+Inside of you'r project, it create Capfile and config/deploy.rb (you need to configure it)
+
+Or if you have exsisting project with capistrano and you want to use all recipes - just add to the end of Capfile  
 ```ruby
 require 'capistrano/ext/capobvious'
 ```
