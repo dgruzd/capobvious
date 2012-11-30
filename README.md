@@ -1,6 +1,6 @@
-# MobileDetect
+# Capobvious
 
-mobile_detect is a lightweight gem for detecting mobile devices. It uses the user-agent string combined with specific HTTP headers to detect the mobile environment.
+capobvious is a recepies, which i use every day
 
 ## Installation
 
@@ -19,18 +19,56 @@ Or install it yourself as:
 ## Usage
 
 If you want to use all recipes add to the end of Capfile  
-    **require 'capistrano/ext/capobvious'**
+```ruby
+require 'capistrano/ext/capobvious'
+```
 
-### Recipes
+## Recipes
 
+### unicorn
 ```ruby
 require 'capobvious/recipes/unicorn'
 ```
-
+```sh
+cap unicorn:start
+cap unicorn:stop
+cap unicorn:restart
+```
+### db
 ```ruby
 require 'capobvious/recipes/db'
 ```
-
+```sh
+cap db:create       # Will create user and production database, taken from database.yml
+cap db:seed         # rake db:seed
+cap db:migrate      # rake db:migrate
+cap db:pg_import    # import remote server postgresql database to your development postgresql database
+                    # IT WILL DELETE YOUR DEV DATABASE 
+```
+### rake
+```ruby
+require 'capobvious/recipes/rake'
+```
+```sh
+cap rake TASK='your:custom:task'
+```
+### import
+```ruby
+require 'capobvious/recipes/import'
+```
+```sh
+cap import:sys  # Import shared/system folder from server to you development machine
+                # (with rsync works much faster)
+```
+### backup
+```ruby
+require 'capobvious/recipes/backup'
+```
+```sh
+cap backup:db   # Backup postgresql server database to local project/tmp/backup folder
+cap backup:sys  # Backup shared/system folder to local project/tmp/backup folder
+cap backup:all  # Run backup:db backup:sys
+```
 
 ## Contributing
 
