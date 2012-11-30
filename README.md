@@ -1,6 +1,6 @@
 # Capobvious
 
-capobvious is a recepies, which i use every day
+capobvious is a recipes, which i use every day
 
 ## Installation
 
