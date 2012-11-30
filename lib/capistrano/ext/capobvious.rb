@@ -85,18 +85,11 @@ Capistrano::Configuration.instance(:must_exist).load do
     end
   end
 
-  after "deploy:update_code", "create:dbconf"
   namespace :create do
     desc "Create .rvmrc"
     task :rvmrc do
       put rvmrc_string, "#{latest_release}/.rvmrc"
     end
-   #task :dbconf do
-   #  serv_path = (exists?(:dbconf) && fetch(:dbconf)) || "#{database_yml_path}.server"
-   #  if File.exist?(serv_path)
-   #    run "cd #{latest_release} && cp -v #{serv_path} #{database_yml_path}"
-   #  end
-   #end
   end
 
 
