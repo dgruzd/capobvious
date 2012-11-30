@@ -9,6 +9,8 @@ require 'capobvious/recipes/db'
 require 'capobvious/recipes/backup'
 require 'capobvious/recipes/logrotate'
 require 'capobvious/recipes/whenever'
+require 'capobvious/recipes/rake'
+require 'capobvious/recipes/import'
 
 Capistrano::Configuration.instance(:must_exist).load do
   _cset(:ruby_version) { RUBY_VERSION }
@@ -134,18 +136,6 @@ Capistrano::Configuration.instance(:must_exist).load do
 
 
 
-  namespace :import do
-    task :sys do
-      #system "rm -rfv public/system/"
-      if which('rsync') && local_which('rsync')
-        logger.important('Importing with rsync', 'import:sys')
-        system "rsync -avz --rsh='ssh -p#{ssh_port}' #{user}@#{serv}:#{shared_path}/system public/"
-      else
-        backup.sys
-        system "cd public && #{arch_extract} ../#{local_folder_path}/#{sys_file_name}"
-      end
-    end
-  end
   namespace :export do
   end
 
@@ -175,16 +165,6 @@ Capistrano::Configuration.instance(:must_exist).load do
     end
   end
 
-  # PRIKHA-TASK
-  desc "Run custom task usage: cap rake TASK=patch:project_category"
-  task :rake do
-    if ENV.has_key?('TASK')
-      logger.important "running rake task: #{ENV['TASK']}"
-      run "cd #{current_path} && bundle exec rake RAILS_ENV=#{rails_env} #{ENV['TASK']}"
-    else
-      puts 'Please specify correct task: cap rake TASK= some_task'
-    end
-  end
 
 
 
