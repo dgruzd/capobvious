@@ -38,7 +38,6 @@ Capistrano::Configuration.instance(:must_exist).load do
 #      add_header ETag "";
 #      break;
 #    }
-      #{exists?(:nginx_add)? fetch(:nginx_add) : ""}
 
       #{(exists?(:assets)&&fetch(:assets)==true)? assets_template : ''}
 
@@ -52,6 +51,7 @@ Capistrano::Configuration.instance(:must_exist).load do
         proxy_pass  http://unix:#{shared_path}/pids/unicorn.sock;
     }
     }
+      #{exists?(:nginx_add)? fetch(:nginx_add) : ""}
       EOF
       if exists?(:server_redirect)
         server_redirect = fetch(:server_redirect)#.split(" ")
