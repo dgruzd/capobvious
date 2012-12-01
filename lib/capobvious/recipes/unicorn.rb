@@ -57,7 +57,7 @@ Capistrano::Configuration.instance(:must_exist).load do
       run "rvm wrapper #{ruby_version} #{join_ruby} unicorn"
       run "rvm wrapper #{ruby_version} #{join_ruby} bundle"
       #puts "sudo -u #{user} -H /home/#{user}/.rvm/bin/#{wrapper} -c #{unicorn_conf} -E production -D"
-      command = "cd #{current_path} && sudo -u #{user} -H #{bundle_wrapper_path} exec #{ruby_wrapper_path} -c #{unicorn_conf} -E production -D"
+      command = "cd #{current_path} && sudo -u #{user} -H #{bundle_wrapper_path} exec #{ruby_wrapper_path} -c #{unicorn_conf} -E #{fetch(:rails_env)} -D"
       puts command
 
       run "#{sudo} sed -i 's/exit 0//g' /etc/rc.local"

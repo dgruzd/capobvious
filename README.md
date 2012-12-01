@@ -96,7 +96,7 @@ cap log:tail    # stream production.log
 require 'capobvious/recipes/logrotate'
 ```
 ```sh
-cap logrotate:init    # user logrotate to clean logs automaticly
+cap logrotate:init    # uses logrotate to clean logs automaticly
 ```
 
 

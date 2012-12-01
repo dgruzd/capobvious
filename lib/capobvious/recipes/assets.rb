@@ -1,9 +1,7 @@
 Capistrano::Configuration.instance(:must_exist).load do
 
-  if exists?(:assets) && fetch(:assets) == true
-    after 'bundle:install', 'assets:precompile'
-    before 'deploy:finalize_update', 'assets:symlink'
-  end
+  after 'bundle:install', 'assets:precompile'
+  before 'deploy:finalize_update', 'assets:symlink'
 
   namespace :assets do
     desc "Local Assets precompile"
