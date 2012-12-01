@@ -1,9 +1,10 @@
 Capistrano::Configuration.instance(:must_exist).load do
   after 'deploy:setup', 'logrotate:init'
 
-  set :logrotate_path, '/etc/logrotate.d'
-  set :logrotate_file_name, "cap_#{application}"
-  set :logrotate_file, "#{logrotate_path}/#{logrotate_file_name}"
+  _cset :logrotate_path, '/etc/logrotate.d'
+  _cset(:logrotate_file_name){ "cap_#{application}_#{rails_env}"}
+  _cset(:logrotate_file){ "#{logrotate_path}/#{logrotate_file_name}"}
+
   namespace :logrotate do
     #http://stackoverflow.com/questions/4883891/ruby-on-rails-production-log-rotation
     task :init do

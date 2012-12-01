@@ -91,6 +91,15 @@ require 'capobvious/recipes/log'
 cap log:tail    # stream production.log
 ```
 
+### logrotate
+```ruby
+require 'capobvious/recipes/logrotate'
+```
+```sh
+cap logrotate:init    # user logrotate to clean logs automaticly
+```
+
+
 ## Contributing
 
 1. Fork it
