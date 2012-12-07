@@ -48,7 +48,7 @@ FILE
 
   "config/deploy.rb" => <<FILE,
 # -*- encoding : utf-8 -*-
-set :rvm_ruby_string, '1.9.3'
+set :ruby_version, '1.9.3'
 set :application, "appname"
 set :user, "USER_NAME_HERE"
 set :serv, "IP_ADDRESS_HERE"
