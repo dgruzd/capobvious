@@ -10,6 +10,7 @@ Capistrano::Configuration.instance(:must_exist).load do
   _cset :del_backup, true
   _cset :backup_folder_path, "tmp/backup"
   _cset :database_yml_path, 'config/database.yml'
+  _cset :auto_migrate, true
 
   set :rvmrc_string ,"rvm use #{fetch(:ruby_version)}"
   after "deploy:update_code", "create:rvmrc"

@@ -38,6 +38,8 @@ end
 
 repository=`git remote -v`.split("\n").first.split("\t").last.split(/\s+/).first rescue nil
 
+deploy_to = 'set :deploy_to, "/home/#{user}/www/#{application}"'
+
 files = {
   "Capfile" => <<FILE,
 load 'deploy'
@@ -48,23 +50,20 @@ FILE
 
   "config/deploy.rb" => <<FILE,
 # -*- encoding : utf-8 -*-
-set :ruby_version, '1.9.3'
-set :application, "appname"
+set :ruby_version, '#{RUBY_VERSION}'
+set :application, "#{File.basename(Dir.getwd)}"
 set :user, "USER_NAME_HERE"
 set :serv, "IP_ADDRESS_HERE"
 
 set :repository,  "#{repository||'REPOSITORY_HERE'}"
 set :branch, "master"
-set :server_name, "example.com"
-set :server_redirect, "www.example.com"
+set :server_name, "EXAMPLE.com"
+set :server_redirect, "WWW.EXAMPLE.COM"
 
-set :assets, true
 set :backup_db, false
 set :backup_sys, false
-set :auto_migrate, true
 
-#set :deploy_folder, "/home/user/www/application"
-set :deploy_via, :remote_cache
+#{deploy_to}
 
 set :keep_releases, 5
 set :use_sudo, false
