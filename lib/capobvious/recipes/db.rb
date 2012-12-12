@@ -54,14 +54,16 @@ Capistrano::Configuration.instance(:must_exist).load do
     end
 
     task :import do
+      yml = database_yml(:development)
+      yml[:username] = `whoami`.chop unless yml[:username]
+
       file_name = "#{db_file_name}.#{db_archive_ext}"
       file_path = "#{backup_folder_path}/#{file_name}"
       system "cd #{backup_folder_path} && #{arch_extract} #{file_name}"
-      system "echo \"drop database IF EXISTS #{local_database}\" | #{psql_postgres}"
-      system "echo \"create database #{local_database} owner #{local_db_username};\" | #{psql_postgres}"
-      #    system "#{psql_postgre} #{local_database} < #{backup_folder_path}/#{db_file_name}"
-      puts "ENTER your development password: #{local_db_password}"
-      system "#{psql} -U#{local_db_username} #{local_database} < #{backup_folder_path}/#{db_file_name}"
+      system "echo \"drop database IF EXISTS #{yml[:database]}\" | #{psql_postgres}"
+      system "echo \"create database #{yml[:database]} owner #{yml[:username]};\" | #{psql_postgres}"
+      puts "ENTER your development password: #{yml[:password]}"
+      system "#{psql} -U#{yml[:username]} #{yml[:database]} < #{backup_folder_path}/#{db_file_name}"
       system "rm #{backup_folder_path}/#{db_file_name}"
     end
     task :pg_import do
