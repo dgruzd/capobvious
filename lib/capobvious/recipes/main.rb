@@ -11,6 +11,7 @@ Capistrano::Configuration.instance(:must_exist).load do
   _cset :backup_folder_path, "tmp/backup"
   _cset :database_yml_path, 'config/database.yml'
   _cset :auto_migrate, true
+  _cset(:ssh) {"ssh -p #{fetch(:port, 22)} #{user}@#{serv}"}
 
   set :rvmrc_string ,"rvm use #{fetch(:ruby_version)}"
   after "deploy:update_code", "create:rvmrc"

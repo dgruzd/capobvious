@@ -24,10 +24,10 @@ Capistrano::Configuration.instance(:must_exist).load do
 
   set :timestamp, Time.new.to_i.to_s
   set :db_archive_ext, "tar.bz2"
-  set :arch_extract, "tar -xvjf"
-  set :arch_create, "tar -cvjf"
+  _cset :arch_extract, "tar -xvjf"
+  _cset :arch_create, "tar -cvjf"
 
-  set :db_file_name, "#{fetch(:application)}-#{timestamp}.sql"
+  set :db_file_name, "#{fetch(:application)}_#{fetch(:rails_env)}-#{timestamp}.sql"
   set :sys_file_name, "#{application}-system-#{timestamp}.#{db_archive_ext}"
 
   namespace :db do
