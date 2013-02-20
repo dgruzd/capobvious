@@ -43,6 +43,17 @@ Capistrano::Configuration.instance(:must_exist).load do
       end
     end
 
+    task :flush do
+      yml = database_yml
+      if yml[:adapter] == "postgresql"
+        sql = %|drop schema public cascade; create schema public;ALTER SCHEMA public OWNER TO #{yml[:username]};|
+        sql+= %|CREATE EXTENSION IF NOT EXISTS hstore;| if exists?(:hstore) && fetch(:hstore)     == true
+        run "echo \"#{sql}\" | #{sudo} -u postgres psql #{yml[:database]}"
+      else
+        puts "Cannot flush, adapter #{yml[:adapter]} is not implemented yet"
+      end
+    end
+
     [:seed, :migrate].each do |t|
       task t do
         run "cd #{latest_release} && bundle exec rake RAILS_ENV=#{rails_env} db:#{t}"
