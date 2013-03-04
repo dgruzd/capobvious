@@ -61,7 +61,7 @@ Capistrano::Configuration.instance(:must_exist).load do
 
 
 
-  VarGems = {'delayed_job' => :delayed_job, 'activerecord-postgres-hstore' => :hstore, 'sitemap_generator' => :sitemap_generator, 'whenever' => 'whenever'}
+  VarGems = {'delayed_job' => :delayed_job, 'activerecord-postgres-hstore' => :hstore, 'sitemap_generator' => :sitemap_generator, 'whenever' => 'whenever', 'turbo-sprockets-rails3' => 'turbo_sprockets_rails3'}
 
   VarGems.each do |gem,var|
     gem = gem.to_s
