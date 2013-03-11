@@ -1,3 +1,3 @@
 module Capobvious
-  VERSION = "0.3.pre6"
+  VERSION = "0.3.pre7"
 end
