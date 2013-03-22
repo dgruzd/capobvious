@@ -78,7 +78,7 @@ Capistrano::Configuration.instance(:must_exist).load do
     desc "Create .rvmrc"
     task :rvmrc do
       if exists?(:ruby_version)
-        rvmrc_string = "rvm use #{fetch(:ruby_version)} --create"
+        rvmrc_string = "rvm use #{fetch(:ruby_version)}"
         logger.info rvmrc_string
         put rvmrc_string, "#{latest_release}/.rvmrc"
       end
