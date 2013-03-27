@@ -13,6 +13,8 @@ Capistrano::Configuration.instance(:must_exist).load do
   _cset :auto_migrate, true
   _cset :assets, true
   _cset(:ssh) {"ssh -p #{fetch(:port, 22)} #{user}@#{serv}"}
+  _cset(:stage){ rails_env }
+  _cset(:application_env){ "#{application}_#{rails_env}"}
 
   after "deploy:update_code", "create:rvmrc"
   after "deploy:update", "deploy:cleanup"
@@ -78,11 +80,9 @@ Capistrano::Configuration.instance(:must_exist).load do
   namespace :create do
     desc "Create .rvmrc"
     task :rvmrc do
-      if exists?(:ruby_version)
-        rvmrc_string = "rvm use #{fetch(:ruby_version)}"
-        logger.info rvmrc_string
-        put rvmrc_string, "#{latest_release}/.rvmrc"
-      end
+      rvmrc_string = "rvm use #{ruby_version}@#{application_env} --create"
+      logger.info rvmrc_string
+      put rvmrc_string, "#{latest_release}/.rvmrc"
     end
   end
 
