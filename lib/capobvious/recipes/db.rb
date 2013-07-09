@@ -6,6 +6,8 @@ Capistrano::Configuration.instance(:must_exist).load do
       config[(key.to_sym rescue key) || key] = config.delete(key)
     end
     config
+  rescue Errno::ENOENT
+    return nil
   end
 
   psql = "psql -h localhost"
