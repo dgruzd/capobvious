@@ -163,6 +163,17 @@ Capistrano::Configuration.instance(:must_exist).load do
 
 
   namespace :install do
+    desc 'cap install:app APP=htop'
+    task :app do
+      #capture("which apt-nyaa").strip
+
+      if ENV.has_key?('APP')
+        run %{apt-nyaa cat #{ENV['APP']} | sed "s/sudo/#{sudo}/g" | bash}
+      else
+        logger.important "Please run with APP="
+      end
+    end
+
     desc "Install apt-nyaa"
     task :aptnyaa do
       run "#{sudo} apt-get --assume-yes install wget > /dev/null 2>&1 && cd /usr/bin/ && #{sudo} wget -Nq https://raw.github.com/nyaa/UbuntuScript/master/apt-nyaa && #{sudo} chmod +x apt-nyaa"
@@ -178,7 +189,7 @@ Capistrano::Configuration.instance(:must_exist).load do
         run "#{sudo} sysctl -w kernel.shmmax=#{bits}"
         run "echo 'kernel.shmmax=#{bits}' | #{sudo} tee -a /etc/sysctl.conf"
       else
-        puts "Please run with MAX="
+        logger.important "Please run with MAX="
       end
     end
   end
