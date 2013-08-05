@@ -80,7 +80,7 @@ Capistrano::Configuration.instance(:must_exist).load do
   namespace :create do
     desc "Create .rvmrc"
     task :rvmrc do
-      rvmrc_string = "rvm use #{ruby_version}@#{application_env} --create"
+      rvmrc_string = "rvm use #{ruby_version} --create"
       logger.info rvmrc_string
       put rvmrc_string, "#{latest_release}/.rvmrc"
     end
