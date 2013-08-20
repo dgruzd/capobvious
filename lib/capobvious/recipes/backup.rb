@@ -60,7 +60,7 @@ Capistrano::Configuration.instance(:must_exist).load do
       run "mkdir -p #{shared_path}/backup"
       if yml[:adapter] == "postgresql"
         logger.important("Backup database #{yml[:database]}", "Backup:db")
-        run "export PGPASSWORD=\"#{yml[:password]}\" && pg_dump -U #{yml[:username]} #{yml[:database]} > #{dump_file_path}"
+        run "export PGPASSWORD=\"#{yml[:password]}\" && pg_dump -U #{yml[:username]} --no-owner #{yml[:database]} > #{dump_file_path}"
         run "cd #{shared_path}/backup && #{arch_create} #{output_file} #{file_name} && rm #{dump_file_path}"
       else
         puts "Cannot backup, adapter #{yml[:adapter]} is not implemented for backup yet"
