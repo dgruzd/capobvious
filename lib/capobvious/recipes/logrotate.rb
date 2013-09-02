@@ -1,6 +1,5 @@
 Capistrano::Configuration.instance(:must_exist).load do
-  after 'deploy:setup', 'logrotate:init'
-
+  #after 'deploy:setup', 'logrotate:init'
   _cset :logrotate_path, '/etc/logrotate.d'
   _cset(:logrotate_file_name){ "cap_#{application}_#{rails_env}"}
   _cset(:logrotate_file){ "#{logrotate_path}/#{logrotate_file_name}"}
