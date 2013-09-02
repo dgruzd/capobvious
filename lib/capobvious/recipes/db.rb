@@ -56,11 +56,11 @@ Capistrano::Configuration.instance(:must_exist).load do
       end
     end
 
-   #[:seed, :migrate].each do |t|
-   #  task t do
-   #    run "cd #{latest_release} && bundle exec rake RAILS_ENV=#{rails_env} db:#{t}"
-   #  end
-   #end
+   [:seed, :migrate].each do |t|
+     task t, :roles => :db, :only => { :primary => true } do
+       run "cd #{latest_release} && bundle exec rake RAILS_ENV=#{rails_env} db:#{t}"
+     end
+   end
 
     task :reset do
       run "cd #{latest_release} && bundle exec rake RAILS_ENV=#{rails_env} db:reset"
