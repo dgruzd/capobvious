@@ -19,7 +19,14 @@ Capistrano::Configuration.instance(:must_exist).load do
       if yml[:adapter] == "postgresql"
         logger.info("Backup database #{yml[:database]}", "Backup:db")
         command << "export PGPASSWORD=\"#{yml[:password]}\""
-        command << "pg_dump -U #{yml[:username]} #{yml[:database]} | bzip2 -c | cat"
+        options = {'-U' => yml[:username]}
+        options['host'] = yml[:host] if yml[:host]
+
+        options_s = ""
+        options.each do |k,v|
+          options_s += "#{k} #{v}"
+        end
+        command << "pg_dump #{options_s} #{yml[:database]} | bzip2 -c | cat"
       else
         puts "Cannot backup, adapter #{yml[:adapter]} is not implemented for backup yet"
       end
@@ -60,7 +67,17 @@ Capistrano::Configuration.instance(:must_exist).load do
       run "mkdir -p #{shared_path}/backup"
       if yml[:adapter] == "postgresql"
         logger.important("Backup database #{yml[:database]}", "Backup:db")
-        run "export PGPASSWORD=\"#{yml[:password]}\" && pg_dump -U #{yml[:username]} --no-owner #{yml[:database]} > #{dump_file_path}"
+
+        options = {'-U' => yml[:username]}
+        options['-h'] = yml[:host] if yml[:host]
+        options['-p'] = yml[:port] if yml[:port]
+        options_s = []
+        options.each do |k,v|
+          options_s << "#{k} #{v}"
+        end
+        options_s = options_s.join(' ')
+
+        run "export PGPASSWORD=\"#{yml[:password]}\" && pg_dump #{options_s} --no-owner #{yml[:database]} > #{dump_file_path}"
         run "cd #{shared_path}/backup && #{arch_create} #{output_file} #{file_name} && rm #{dump_file_path}"
       else
         puts "Cannot backup, adapter #{yml[:adapter]} is not implemented for backup yet"
