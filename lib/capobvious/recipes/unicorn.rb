@@ -21,6 +21,7 @@ Capistrano::Configuration.instance(:must_exist).load do
       puts command
 
       run "#{sudo} sed -i 's/exit 0//g' /etc/rc.local"
+      run "echo \"# #{application_env}\" | #{sudo} tee -a /etc/rc.local"
       run "echo \"#{command}\" | #{sudo} tee -a /etc/rc.local"
       run "echo \"exit 0\" | #{sudo} tee -a /etc/rc.local"
     end
