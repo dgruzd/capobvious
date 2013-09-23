@@ -12,7 +12,8 @@ Capistrano::Configuration.instance(:must_exist).load do
   _cset :database_yml_path, 'config/database.yml'
   _cset :auto_migrate, true
   _cset :assets, true
-  _cset(:ssh) {"ssh -p #{fetch(:port, 22)} #{user}@#{serv}"}
+  _cset :port, 22
+  _cset(:ssh) {"ssh -p #{fetch(:port)} #{user}@#{serv}"}
   _cset(:stage){ rails_env }
   _cset(:application_env){ "#{application}_#{rails_env}"}
 
@@ -30,6 +31,10 @@ Capistrano::Configuration.instance(:must_exist).load do
     return (gemfile_lock =~ /^\s*#{name}\s+\(/)? true : false
   end
 
+  def current_host
+    capture("echo $CAPISTRANO:HOST$").strip
+  end
+
   def which(name)
     str = capture("which #{name}").chop
     return false if str == ''
@@ -44,9 +49,7 @@ Capistrano::Configuration.instance(:must_exist).load do
   rescue
     false
   end
-  def ssh_port
-    exists?(:port) ? fetch(:port) : 22
-  end
+
   def local_gem_available?(name)
     Gem::Specification.find_by_name(name)
   rescue Gem::LoadError
