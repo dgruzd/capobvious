@@ -1,5 +1,7 @@
 Capistrano::Configuration.instance(:must_exist).load do
-  _cset(:ruby_version) { RUBY_VERSION }
+  set :bundle_dir, ''
+  set :bundle_flags, '--system --quiet'
+
   _cset :rvm_type, :user
   _cset :rails_env, 'production'
   _cset :branch, 'master'
@@ -16,15 +18,18 @@ Capistrano::Configuration.instance(:must_exist).load do
   _cset(:ssh) {"ssh -p #{fetch(:port)} #{user}@#{serv}"}
   _cset(:stage){ rails_env }
   _cset(:application_env){ "#{application}_#{rails_env}"}
+  _cset(:rvm_ruby_string){ "#{ruby_version}@#{application}" }
 
-  after "deploy:update_code", "create:rvmrc"
+  before 'deploy', 'rvm:install_rvm'  # install/update RVM
+  before 'deploy', 'rvm:install_ruby' # install Ruby and create gemset (both if missing)
+
+  #after "deploy:update_code", "create:rvmrc"
   after "deploy:update", "deploy:cleanup"
 
   #set :deploy_to, (exists?(:deploy_folder)? fetch(:deploy_folder) : "/home/#{user}/www/#{application}")
 
   default_run_options[:pty] = true
   ssh_options[:forward_agent] = true
-
 
   def gem_use?(name)
     gemfile_lock = File.read("Gemfile.lock")
@@ -82,8 +87,8 @@ Capistrano::Configuration.instance(:must_exist).load do
 
   namespace :create do
     desc "Create .rvmrc"
-    task :rvmrc do
-      rvmrc_string = "rvm use #{ruby_version} --create"
+    task :rvmrc, :roles => :web, :except => { :no_release => true }  do
+      rvmrc_string = "rvm use #{rvm_ruby_string} --create"
       logger.info rvmrc_string
       put rvmrc_string, "#{latest_release}/.rvmrc"
     end

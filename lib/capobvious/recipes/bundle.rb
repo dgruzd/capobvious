@@ -3,9 +3,11 @@ Capistrano::Configuration.instance(:must_exist).load do
   namespace :bundle do
     desc "Run bundle install"
     task :install do
+      opts = []
+      opts << "-j#{server_cores.to_i}" if server_cores.to_i > 1
       deployment = "--deployment --quiet"
       without = ['development','test','production']-[rails_env]
-      run "cd #{latest_release} && bundle install --without #{without.join(" ")}"
+      run "cd #{latest_release} && bundle install #{opts.join(' ')} --without #{without.join(" ")}"
     end
   end
 end
