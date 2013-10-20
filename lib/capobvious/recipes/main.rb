@@ -19,6 +19,7 @@ Capistrano::Configuration.instance(:must_exist).load do
   _cset(:stage){ rails_env }
   _cset(:application_env){ "#{application}_#{rails_env}"}
   _cset(:rvm_ruby_string){ "#{ruby_version}@#{application}" }
+  _cset :robots_disallow, false
 
   before 'deploy', 'rvm:install_rvm'  # install/update RVM
   before 'deploy', 'rvm:install_ruby' # install Ruby and create gemset (both if missing)
@@ -92,6 +93,12 @@ Capistrano::Configuration.instance(:must_exist).load do
       logger.info rvmrc_string
       put rvmrc_string, "#{latest_release}/.rvmrc"
     end
+
+    desc "Create deny robots.txt"
+    task :robots, :roles => :web do
+      logger.important "CREATING DISALLOW robots.txt - do not forget to remove"
+      put "User-agent: *\nDisallow: /\n", "#{latest_release}/public/robots.txt"
+    end
   end
 
 
@@ -107,7 +114,9 @@ Capistrano::Configuration.instance(:must_exist).load do
       if exists?(:delayed_job) && fetch(:delayed_job) == true
         delayed_job.restart
       end
-
+      if exists?(:robots_disallow) && fetch(:robots_disallow) == true
+        create.robots
+      end
 
     end
     task :prepare do
